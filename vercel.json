@@ -1,0 +1,21 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "framework": "react",
+  "nodeVersion": "20.x",
+  "env": {
+    "VITE_API_URL": "@vite_api_url"
+  },
+  "env.production": {
+    "VITE_API_URL": "https://workflow-backend.onrender.com"
+  },
+  "env.preview": {
+    "VITE_API_URL": "https://workflow-backend.onrender.com"
+  },
+  "redirects": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://workflow-backend.onrender.com/api/:path*"
+    }
+  ]
+}

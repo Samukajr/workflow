@@ -1,0 +1,11 @@
+# Arquivos a ignorar no build do Vercel
+.git
+.gitignore
+.env
+.env.local
+node_modules
+npm-debug.log
+README.md
+GUIA-DEPLOYMENT.md
+CONFORMIDADE-LGPD.md
+**.md

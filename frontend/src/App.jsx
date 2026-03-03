@@ -9,6 +9,13 @@ function App() {
   const [user, setUser] = useState(null)
   const [page, setPage] = useState('login')
   const [requisicoes, setRequisicoes] = useState([])
+  const [usuarios, setUsuarios] = useState([])
+  const [novoUsuario, setNovoUsuario] = useState({
+    nome: '',
+    email: '',
+    senha: '',
+    tipo: 'DEPARTAMENTO'
+  })
   
   // Formulário de submissão
   const [novaRequisicao, setNovaRequisicao] = useState({
@@ -20,6 +27,14 @@ function App() {
   // Login
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    }
+  }
   
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -34,8 +49,11 @@ function App() {
         localStorage.setItem('token', data.token)
         setUser(data.user)
         setLoggedIn(true)
-        setPage('dashboard')
+        setPage(data.user?.tipo === 'SUPER_ADMIN' ? 'usuarios' : 'dashboard')
         loadRequisicoes()
+        if (data.user?.tipo === 'SUPER_ADMIN') {
+          loadUsuarios(data.token)
+        }
       }
     } catch (error) {
       alert('Erro no login: ' + error.message)
@@ -56,6 +74,56 @@ function App() {
       setRequisicoes(data.data || [])
     } catch (error) {
       console.error('Erro ao carregar requisições:', error)
+    }
+  }
+
+  const loadUsuarios = async (tokenOverride = null) => {
+    try {
+      const token = tokenOverride || localStorage.getItem('token')
+      const response = await fetch(`${API_URL}/api/usuarios`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        const erro = await response.json()
+        throw new Error(erro.error || 'Não foi possível carregar usuários')
+      }
+
+      const data = await response.json()
+      setUsuarios(data.data || [])
+    } catch (error) {
+      alert('Erro ao carregar usuários: ' + error.message)
+    }
+  }
+
+  const criarUsuario = async (e) => {
+    e.preventDefault()
+
+    if (!novoUsuario.nome || !novoUsuario.email || !novoUsuario.senha || !novoUsuario.tipo) {
+      alert('Preencha todos os campos do novo usuário!')
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/usuarios`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(novoUsuario)
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao criar usuário')
+      }
+
+      alert('✅ Usuário criado com sucesso!')
+      setNovoUsuario({ nome: '', email: '', senha: '', tipo: 'DEPARTAMENTO' })
+      loadUsuarios()
+    } catch (error) {
+      alert('Erro ao criar usuário: ' + error.message)
     }
   }
   
@@ -150,6 +218,7 @@ function App() {
           </form>
           <div className="demo-users">
             <h3>👥 Usuários de Teste:</h3>
+            <p>superadmin@empresa.com / 123456</p>
             <p>admin@empresa.com / 123456</p>
             <p>validador@empresa.com / 123456</p>
             <p>financeiro@empresa.com / 123456</p>
@@ -165,9 +234,15 @@ function App() {
         <h2>💰 Workflow de Pagamentos</h2>
         <div className="nav-buttons">
           {/* Menu condicional por tipo de usuário */}
-          {user?.tipo !== 'FINANCEIRO' && user?.tipo !== 'VALIDACAO' && (
+          {user?.tipo !== 'FINANCEIRO' && user?.tipo !== 'VALIDACAO' && user?.tipo !== 'SUPER_ADMIN' && (
             <button onClick={() => { setPage('submissao'); loadRequisicoes(); }} className={page === 'submissao' ? 'active' : ''}>
               📤 Submissão
+            </button>
+          )}
+
+          {user?.tipo === 'SUPER_ADMIN' && (
+            <button onClick={() => { setPage('usuarios'); loadUsuarios(); }} className={page === 'usuarios' ? 'active' : ''}>
+              👑 Usuários
             </button>
           )}
           
@@ -193,6 +268,94 @@ function App() {
       </nav>
 
       <div className="content">
+        {page === 'usuarios' && user?.tipo === 'SUPER_ADMIN' && (
+          <div>
+            <h1>👑 Gestão de Usuários</h1>
+            <p className="subtitle">Crie logins para financeiro, validação e equipes de submissão</p>
+
+            <div className="form-container">
+              <form onSubmit={criarUsuario} className="submission-form">
+                <div className="form-group">
+                  <label>👤 Nome</label>
+                  <input
+                    type="text"
+                    placeholder="Nome completo"
+                    value={novoUsuario.nome}
+                    onChange={(e) => setNovoUsuario({ ...novoUsuario, nome: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>📧 Email</label>
+                  <input
+                    type="email"
+                    placeholder="usuario@empresa.com"
+                    value={novoUsuario.email}
+                    onChange={(e) => setNovoUsuario({ ...novoUsuario, email: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>🔐 Senha</label>
+                    <input
+                      type="password"
+                      placeholder="Senha inicial"
+                      value={novoUsuario.senha}
+                      onChange={(e) => setNovoUsuario({ ...novoUsuario, senha: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>🏷️ Perfil</label>
+                    <select
+                      value={novoUsuario.tipo}
+                      onChange={(e) => setNovoUsuario({ ...novoUsuario, tipo: e.target.value })}
+                      required
+                    >
+                      <option value="DEPARTAMENTO">Equipe de Submissão</option>
+                      <option value="VALIDACAO">Validador</option>
+                      <option value="FINANCEIRO">Financeiro</option>
+                      <option value="ADMIN">Administrador</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" className="btn-submit">✅ Criar Usuário</button>
+              </form>
+            </div>
+
+            <h2>👥 Usuários Cadastrados</h2>
+            {usuarios.length === 0 ? (
+              <p className="empty-message">Nenhum usuário encontrado</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Perfil</th>
+                    <th>Criado em</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usuarios.map(u => (
+                    <tr key={u.id}>
+                      <td>{u.nome}</td>
+                      <td>{u.email}</td>
+                      <td>{u.tipo}</td>
+                      <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('pt-BR') : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
         {page === 'submissao' && (
           <div>
             <h1>📤 Submissão de Boletos e Notas Fiscais</h1>

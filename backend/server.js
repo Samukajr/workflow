@@ -110,6 +110,7 @@ let requisicoes = [
 ];
 
 let usuarios = [
+  { id: '0', email: 'superadmin@empresa.com', senha: hashSenha('123456'), nome: 'Super Administrador', tipo: 'SUPER_ADMIN', cpf: criptografar('99999999999'), aceiteTermoLGPD: true },
   { id: '1', email: 'admin@empresa.com', senha: hashSenha('123456'), nome: 'Administrador', tipo: 'ADMIN', cpf: criptografar('00000000000'), aceiteTermoLGPD: true },
   { id: '2', email: 'validador@empresa.com', senha: hashSenha('123456'), nome: 'Validador', tipo: 'VALIDACAO', cpf: criptografar('11111111111'), aceiteTermoLGPD: true },
   { id: '3', email: 'financeiro@empresa.com', senha: hashSenha('123456'), nome: 'Financeiro', tipo: 'FINANCEIRO', cpf: criptografar('22222222222'), aceiteTermoLGPD: true },
@@ -129,6 +130,33 @@ app.use((req, res, next) => {
   req.userAgent = req.get('user-agent') || 'unknown';
   next();
 });
+
+function getUserFromAuthHeader(req) {
+  const authHeader = req.headers.authorization || '';
+  if (!authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+  const userId = token.replace('fake-jwt-token-', '');
+  const user = usuarios.find(u => u.id === userId);
+  return user || null;
+}
+
+function requireSuperAdmin(req, res, next) {
+  const user = getUserFromAuthHeader(req);
+
+  if (!user) {
+    return res.status(401).json({ error: 'Não autenticado' });
+  }
+
+  if (user.tipo !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'Acesso negado. Apenas SUPER_ADMIN.' });
+  }
+
+  req.superAdmin = user;
+  next();
+}
 
 // ==========================================
 // ROTAS DE AUTENTICAÇÃO
@@ -157,6 +185,78 @@ app.post('/api/auth/login', (req, res) => {
       tipo: user.tipo,
       departamento: user.tipo
     }
+  });
+});
+
+// ==========================================
+// ROTAS DE ADMINISTRAÇÃO DE USUÁRIOS
+// ==========================================
+
+app.get('/api/usuarios', requireSuperAdmin, (req, res) => {
+  const usuariosPublicos = usuarios.map(u => ({
+    id: u.id,
+    nome: u.nome,
+    email: u.email,
+    tipo: u.tipo,
+    createdAt: u.createdAt || null,
+    aceiteTermoLGPD: u.aceiteTermoLGPD
+  }));
+
+  res.json({ data: usuariosPublicos });
+});
+
+app.post('/api/usuarios', requireSuperAdmin, (req, res) => {
+  const { nome, email, senha, tipo } = req.body;
+
+  if (!nome || !email || !senha || !tipo) {
+    return res.status(400).json({ error: 'Campos obrigatórios: nome, email, senha e tipo' });
+  }
+
+  const tiposPermitidos = ['ADMIN', 'VALIDACAO', 'FINANCEIRO', 'DEPARTAMENTO'];
+  if (!tiposPermitidos.includes(tipo)) {
+    return res.status(400).json({ error: `Tipo inválido. Use: ${tiposPermitidos.join(', ')}` });
+  }
+
+  const emailNormalizado = String(email).trim().toLowerCase();
+  const emailJaExiste = usuarios.some(u => u.email.toLowerCase() === emailNormalizado);
+  if (emailJaExiste) {
+    return res.status(409).json({ error: 'Já existe um usuário com este email' });
+  }
+
+  const maiorId = usuarios.reduce((maxId, u) => {
+    const idNumerico = parseInt(u.id, 10);
+    return Number.isNaN(idNumerico) ? maxId : Math.max(maxId, idNumerico);
+  }, 0);
+
+  const novoUsuario = {
+    id: String(maiorId + 1),
+    email: emailNormalizado,
+    senha: hashSenha(senha),
+    nome: String(nome).trim(),
+    tipo,
+    cpf: criptografar('00000000000'),
+    aceiteTermoLGPD: true,
+    createdAt: new Date().toISOString()
+  };
+
+  usuarios.push(novoUsuario);
+
+  registrarAuditoria(
+    'USUARIO_CRIADO',
+    'USUARIO',
+    novoUsuario.id,
+    req.superAdmin.id,
+    { nome: novoUsuario.nome, email: novoUsuario.email, tipo: novoUsuario.tipo },
+    req.ipAddress,
+    req.userAgent
+  );
+
+  res.status(201).json({
+    id: novoUsuario.id,
+    nome: novoUsuario.nome,
+    email: novoUsuario.email,
+    tipo: novoUsuario.tipo,
+    createdAt: novoUsuario.createdAt
   });
 });
 
@@ -405,6 +505,7 @@ app.listen(PORT, () => {
   console.log(`   → http://localhost:${PORT}/health`);
   console.log('');
   console.log('👥 Usuários de teste:');
+  console.log('   - superadmin@empresa.com / 123456 (Super Admin)');
   console.log('   - admin@empresa.com / 123456 (Admin)');
   console.log('   - validador@empresa.com / 123456 (Validação)');
   console.log('   - financeiro@empresa.com / 123456 (Financeiro)');

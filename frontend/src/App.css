@@ -307,7 +307,8 @@ tbody tr:hover {
   font-size: 14px;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   padding: 12px;
   border: 2px solid #e1e8ed;
   border-radius: 8px;
@@ -316,7 +317,8 @@ tbody tr:hover {
   font-family: inherit;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);

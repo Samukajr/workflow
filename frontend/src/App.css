@@ -573,3 +573,17 @@ tbody tr:hover {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+
+
+/* Textarea customizado */
+textarea {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+

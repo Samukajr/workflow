@@ -36,6 +36,12 @@ function App() {
   // Modal de confirmação de pagamento
   const [pagamentoEmConfirmacao, setPagamentoEmConfirmacao] = useState(null)
   
+  // Modal de análise de validação (documento)
+  const [validacaoEmAnalise, setValidacaoEmAnalise] = useState(null)
+  const [comentarioValidacao, setComentarioValidacao] = useState('')
+  const [motivoRejeicao, setMotivoRejeicao] = useState('')
+  const [mostraMotivoRejeicao, setMostraMotivoRejeicao] = useState(false)
+  
   // Login
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -193,16 +199,78 @@ function App() {
     }
   }
   
-  const aprovarRequisicao = async (id) => {
+  const abrirAnaliseValidacao = (requisicao) => {
+    setValidacaoEmAnalise(requisicao)
+    setComentarioValidacao('')
+    setMotivoRejeicao('')
+    setMostraMotivoRejeicao(false)
+  }
+
+  const cancelarAnaliseValidacao = () => {
+    setValidacaoEmAnalise(null)
+    setComentarioValidacao('')
+    setMotivoRejeicao('')
+    setMostraMotivoRejeicao(false)
+  }
+
+  const confirmarValidacao = async () => {
+    if (!validacaoEmAnalise) return
+    
     try {
-      await fetch(`${API_URL}/api/validacoes/${id}/aprovar`, {
+      const response = await fetch(`${API_URL}/api/validacoes/${validacaoEmAnalise.id}/aprovar`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          comentarioValidador: comentarioValidacao || ''
+        })
       })
-      alert('Requisição aprovada!')
+
+      if (!response.ok) {
+        throw new Error('Erro ao validar requisição')
+      }
+
+      alert('✅ Documento validado e aprovado para pagamento!')
+      cancelarAnaliseValidacao()
       loadRequisicoes()
     } catch (error) {
-      alert('Erro ao aprovar: ' + error.message)
+      alert('Erro ao validar: ' + error.message)
+    }
+  }
+
+  const rejeitarValidacao = async () => {
+    if (!validacaoEmAnalise) return
+    
+    if (!motivoRejeicao.trim()) {
+      alert('⚠️ Informe o motivo da rejeição!')
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/validacoes/${validacaoEmAnalise.id}/rejeitar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          motivo: motivoRejeicao
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Erro ao rejeitar requisição')
+      }
+
+      alert('❌ Documento rejeitado. Motivo registrado na auditoria.')
+      cancelarAnaliseValidacao()
+      loadRequisicoes()
+    } catch (error) {
+      alert('Erro ao rejeitar: ' + error.message)
+    }
+  }
+
+  const aprovarRequisicao = async (id) => {
+    // Abre modal de análise em vez de aprovar direto
+    const requisicao = requisicoes.find(r => r.id === id)
+    if (requisicao) {
+      abrirAnaliseValidacao(requisicao)
     }
   }
   
@@ -768,6 +836,143 @@ function App() {
                 ))}
               </tbody>
             </table>
+
+            {/* Modal de Análise de Validação */}
+            {validacaoEmAnalise && (
+              <div className="modal-overlay" onClick={cancelarAnaliseValidacao}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <h2>🔍 Análise de Documento para Validação</h2>
+                  
+                  <div className="payment-details">
+                    <div className="detail-row">
+                      <strong>Número:</strong>
+                      <span>{validacaoEmAnalise.numero}</span>
+                    </div>
+                    <div className="detail-row">
+                      <strong>Descrição:</strong>
+                      <span>{validacaoEmAnalise.descricao}</span>
+                    </div>
+                    <div className="detail-row">
+                      <strong>Valor:</strong>
+                      <span style={{fontSize: '16px', fontWeight: 'bold', color: '#667eea'}}>
+                        R$ {validacaoEmAnalise.valor.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="detail-row">
+                      <strong>Vencimento:</strong>
+                      <span>{new Date(validacaoEmAnalise.dataVencimento).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                    <div className="detail-row">
+                      <strong>Departamento:</strong>
+                      <span>{validacaoEmAnalise.departamento || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  <div style={{marginTop: '20px', marginBottom: '20px'}}>
+                    <strong>📄 Documento para Análise:</strong>
+                    {validacaoEmAnalise.anexo ? (
+                      <iframe 
+                        src={`${validacaoEmAnalise.anexo.dados}#toolbar=0&navpanes=0&scrollbar=0`}
+                        style={{
+                          width: '100%',
+                          height: '350px',
+                          border: '2px solid #667eea',
+                          borderRadius: '8px',
+                          marginTop: '10px'
+                        }}
+                        title="Documento para análise"
+                      />
+                    ) : (
+                      <p style={{color: '#999', marginTop: '10px'}}>Nenhum documento anexado</p>
+                    )}
+                    {validacaoEmAnalise.anexo && (
+                      <a 
+                        href={validacaoEmAnalise.anexo.dados} 
+                        download={validacaoEmAnalise.anexo.nome}
+                        style={{display: 'inline-block', marginTop: '10px'}}
+                        className="anexo-link"
+                      >
+                        ⬇️ Baixar Documento
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>💬 Comentário da Validação (Opcional)</label>
+                    <textarea 
+                      placeholder="Ex: Documento verificado, assinatura válida, não é fraude"
+                      value={comentarioValidacao}
+                      onChange={(e) => setComentarioValidacao(e.target.value)}
+                      style={{
+                        width: '100%',
+                        minHeight: '80px',
+                        padding: '12px',
+                        border: '2px solid #e1e8ed',
+                        borderRadius: '8px',
+                        fontFamily: 'inherit',
+                        fontSize: '14px',
+                        resize: 'vertical'
+                      }}
+                    />
+                  </div>
+
+                  {mostraMotivoRejeicao && (
+                    <div className="form-group">
+                      <label style={{color: '#dc2626'}}>❌ Motivo da Rejeição *</label>
+                      <textarea 
+                        placeholder="Informe o motivo: documento inválido, suspeita de fraude, assinatura inconsistente, etc"
+                        value={motivoRejeicao}
+                        onChange={(e) => setMotivoRejeicao(e.target.value)}
+                        style={{
+                          width: '100%',
+                          minHeight: '100px',
+                          padding: '12px',
+                          border: '2px solid #dc2626',
+                          borderRadius: '8px',
+                          fontFamily: 'inherit',
+                          fontSize: '14px',
+                          resize: 'vertical'
+                        }}
+                        autoFocus
+                      />
+                    </div>
+                  )}
+
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginTop: '20px'}}>
+                    <button type="button" onClick={cancelarAnaliseValidacao} className="btn-cancel">
+                      ← Voltar
+                    </button>
+                    {mostraMotivoRejeicao ? (
+                      <>
+                        <button 
+                          type="button" 
+                          onClick={() => setMostraMotivoRejeicao(false)} 
+                          className="btn-edit"
+                        >
+                          ← Voltar
+                        </button>
+                        <button type="button" onClick={rejeitarValidacao} className="btn-danger">
+                          ❌ Confirmar Rejeição
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button 
+                          type="button" 
+                          onClick={() => setMostraMotivoRejeicao(true)} 
+                          className="btn-danger"
+                        >
+                          ❌ Rejeitar
+                        </button>
+                        <button type="button" onClick={confirmarValidacao} className="btn-success" style={{fontSize: '16px', padding: '12px 24px'}}>
+                          ✅ Validar e Aprovar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

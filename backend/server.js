@@ -387,12 +387,17 @@ app.post('/api/validacoes/:id/aprovar', (req, res) => {
     return res.status(404).json({ error: 'Requisição não encontrada' });
   }
   
+  const { comentarioValidador } = req.body;
+  
   requisicoes[index].status = 'VALIDADA';
   requisicoes[index].validadoEm = new Date().toISOString();
+  if (comentarioValidador) {
+    requisicoes[index].comentarioValidador = comentarioValidador;
+  }
   
   // Registrar auditoria
   registrarAuditoria('VALIDACAO_APROVADA', 'REQUISICAO', req.params.id, 'desconhecido',
-    { status: 'VALIDADA', nf: requisicoes[index].numero }, req.ipAddress, req.userAgent);
+    { status: 'VALIDADA', nf: requisicoes[index].numero, comentario: comentarioValidador || '' }, req.ipAddress, req.userAgent);
   
   res.json(requisicoes[index]);
 });
@@ -403,8 +408,15 @@ app.post('/api/validacoes/:id/rejeitar', (req, res) => {
     return res.status(404).json({ error: 'Requisição não encontrada' });
   }
   
+  const { motivo } = req.body;
+  
+  if (!motivo || motivo.trim().length === 0) {
+    return res.status(400).json({ error: 'Motivo da rejeição é obrigatório' });
+  }
+  
   requisicoes[index].status = 'REJEITADA';
-  requisicoes[index].motivoRejeicao = req.body.motivo;
+  requisicoes[index].motivoRejeicao = motivo;
+  requisicoes[index].rejeitadoEm = new Date().toISOString();
   
   // Registrar auditoria
   registrarAuditoria('VALIDACAO_REJEITADA', 'REQUISICAO', req.params.id, 'desconhecido',

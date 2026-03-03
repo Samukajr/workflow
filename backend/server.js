@@ -3,15 +3,24 @@ import cors from 'cors';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 
-// Carregar variáveis de ambiente
-dotenv.config();
+// Carregar variáveis de ambiente (produção primeiro)
+if (process.env.NODE_ENV === 'production') {
+  dotenv.config({ path: '.env.production' });
+} else {
+  dotenv.config();
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Configurar CORS dinamicamente
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:3000').split(',');
+// Configurar CORS dinamicamente - suportar produção e desenvolvimento
+let defaultOrigins = 'http://localhost:5173,http://localhost:3000';
+if (NODE_ENV === 'production') {
+  defaultOrigins = 'https://workflow-frontend.vercel.app,https://workflow-backend.onrender.com';
+}
+
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || defaultOrigins).split(',');
 const corsOptions = {
   origin: function (origin, callback) {
     // Permitir requisições sem origin (como mobile apps, curl, etc)

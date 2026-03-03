@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import './App.css'
 
 // Configurar URL da API
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://workflow-backend.onrender.com' : 'http://localhost:3000')
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -65,11 +65,17 @@ function App() {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password })
       })
       const data = await response.json()
-      if (data.token) {
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Falha ao autenticar')
+      }
+
+      if (data.token && data.user) {
         localStorage.setItem('token', data.token)
+        localStorage.setItem('user', JSON.stringify(data.user))
         setUser(data.user)
         setLoggedIn(true)
         setPage(data.user?.tipo === 'SUPER_ADMIN' ? 'usuarios' : 'dashboard')
@@ -77,6 +83,8 @@ function App() {
         if (data.user?.tipo === 'SUPER_ADMIN') {
           loadUsuarios(data.token)
         }
+      } else {
+        throw new Error('Resposta de autenticação inválida')
       }
     } catch (error) {
       alert('Erro no login: ' + error.message)
@@ -85,6 +93,7 @@ function App() {
   
   const handleLogout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
     setLoggedIn(false)
     setUser(null)
     setPage('login')
@@ -504,9 +513,30 @@ function App() {
   
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (token) {
-      // Aqui você pode validar o token no backend
+    const userStorage = localStorage.getItem('user')
+
+    if (!token || !userStorage) {
+      setLoggedIn(false)
+      setUser(null)
+      setPage('login')
+      return
+    }
+
+    try {
+      const parsedUser = JSON.parse(userStorage)
+      setUser(parsedUser)
       setLoggedIn(true)
+      setPage(parsedUser?.tipo === 'SUPER_ADMIN' ? 'usuarios' : 'dashboard')
+      loadRequisicoes()
+      if (parsedUser?.tipo === 'SUPER_ADMIN') {
+        loadUsuarios(token)
+      }
+    } catch {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      setLoggedIn(false)
+      setUser(null)
+      setPage('login')
     }
   }, [])
 

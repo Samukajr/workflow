@@ -33,6 +33,11 @@ function App() {
   const [arquivoAnexado, setArquivoAnexado] = useState(null)
   const [arquivoBase64, setArquivoBase64] = useState(null)
   
+  // Estados para câmera/escaneamento
+  const [mostrarCamera, setMostrarCamera] = useState(false)
+  const [stream, setStream] = useState(null)
+  const [imagemCapturada, setImagemCapturada] = useState(null)
+  
   // Modal de confirmação de pagamento
   const [pagamentoEmConfirmacao, setPagamentoEmConfirmacao] = useState(null)
   
@@ -361,6 +366,77 @@ function App() {
       })
     }
     reader.readAsDataURL(file)
+  }
+
+  // Funções para escaneamento via câmera
+  const abrirCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: 'environment', // Câmera traseira em mobile
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      })
+      setStream(mediaStream)
+      setMostrarCamera(true)
+      setImagemCapturada(null)
+      
+      // Aguardar um frame para o vídeo estar pronto
+      setTimeout(() => {
+        const video = document.getElementById('camera-preview')
+        if (video) {
+          video.srcObject = mediaStream
+        }
+      }, 100)
+    } catch (error) {
+      alert('❌ Erro ao acessar câmera: ' + error.message + '\n\nVerifique se você deu permissão para usar a câmera.')
+    }
+  }
+
+  const capturarImagem = () => {
+    const video = document.getElementById('camera-preview')
+    const canvas = document.createElement('canvas')
+    
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0)
+    
+    // Converter para Base64
+    const imagemDataUrl = canvas.toDataURL('image/jpeg', 0.9)
+    setImagemCapturada(imagemDataUrl)
+  }
+
+  const confirmarCaptura = () => {
+    if (!imagemCapturada) return
+    
+    // Criar objeto arquivo simulado para compatibilidade
+    const timestamp = new Date().getTime()
+    setArquivoBase64({
+      nome: `documento-escaneado-${timestamp}.jpg`,
+      tipo: 'image/jpeg',
+      tamanho: Math.round(imagemCapturada.length * 0.75), // Estimativa do tamanho
+      dados: imagemCapturada
+    })
+    
+    setArquivoAnexado({ name: `documento-escaneado-${timestamp}.jpg` })
+    fecharCamera()
+    alert('✅ Documento escaneado com sucesso!')
+  }
+
+  const recapturar = () => {
+    setImagemCapturada(null)
+  }
+
+  const fecharCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop())
+      setStream(null)
+    }
+    setMostrarCamera(false)
+    setImagemCapturada(null)
   }
 
   const submeterRequisicao = async (e) => {
@@ -699,16 +775,37 @@ function App() {
 
                 <div className="form-group">
                   <label>📎 Anexar Documento (Boleto, NF ou Fatura)</label>
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,.webp"
-                    onChange={handleFileChange}
-                    required
-                    className="file-input"
-                  />
+                  
+                  <div className="upload-options">
+                    <div className="upload-option">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
+                        onChange={handleFileChange}
+                        className="file-input"
+                        id="file-upload"
+                      />
+                      <label htmlFor="file-upload" className="file-input-label">
+                        📁 Selecionar Arquivo
+                      </label>
+                    </div>
+                    
+                    <div className="upload-divider">ou</div>
+                    
+                    <div className="upload-option">
+                      <button 
+                        type="button" 
+                        onClick={abrirCamera}
+                        className="btn-camera"
+                      >
+                        📷 Escanear Documento
+                      </button>
+                    </div>
+                  </div>
+                  
                   {arquivoAnexado && (
                     <div className="file-info">
-                      ✅ {arquivoAnexado.name} ({(arquivoAnexado.size / 1024).toFixed(0)} KB)
+                      ✅ {arquivoAnexado.name} ({(arquivoAnexado.size / 1024)?.toFixed(0) || 'N/A'} KB)
                     </div>
                   )}
                   <small className="help-text">Formatos aceitos: PDF, JPG, PNG, WEBP (máx. 5MB)</small>
@@ -1079,6 +1176,54 @@ function App() {
 
             {requisicoes.filter(r => r.status === 'FINALIZADO').length === 0 && (
               <p className="empty-message">Nenhum pagamento finalizado</p>
+            )}
+
+            {/* Modal de Escaneamento via Câmera */}
+            {mostrarCamera && (
+              <div className="modal-overlay" onClick={fecharCamera}>
+                <div className="modal-content camera-modal" onClick={(e) => e.stopPropagation()}>
+                  <h2>📷 Escanear Documento</h2>
+                  
+                  {!imagemCapturada ? (
+                    <div className="camera-container">
+                      <p className="help-text">Posicione o documento dentro da área e clique em Capturar</p>
+                      <video 
+                        id="camera-preview" 
+                        autoPlay 
+                        playsInline
+                        className="camera-preview"
+                      />
+                      
+                      <div className="camera-controls">
+                        <button type="button" onClick={fecharCamera} className="btn-cancel">
+                          ❌ Cancelar
+                        </button>
+                        <button type="button" onClick={capturarImagem} className="btn-primary">
+                          📸 Capturar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="capture-preview">
+                      <p className="help-text">Confira se o documento ficou legível</p>
+                      <img 
+                        src={imagemCapturada} 
+                        alt="Documento capturado" 
+                        className="captured-image"
+                      />
+                      
+                      <div className="camera-controls">
+                        <button type="button" onClick={recapturar} className="btn-cancel">
+                          🔄 Capturar Novamente
+                        </button>
+                        <button type="button" onClick={confirmarCaptura} className="btn-success">
+                          ✅ Usar Esta Imagem
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
 
             {/* Modal de Confirmação de Pagamento */}

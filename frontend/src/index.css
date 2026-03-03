@@ -21,7 +21,7 @@ body {
   min-width: 320px;
   background-image:
     linear-gradient(rgba(15, 23, 42, 0.55), rgba(30, 41, 59, 0.55)),
-    url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=2400&q=80');
+    url('/mercados.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

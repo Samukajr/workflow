@@ -418,7 +418,7 @@ app.post('/api/validacoes/:id/rejeitar', (req, res) => {
 // ==========================================
 
 app.get('/api/pagamentos', (req, res) => {
-  const aprovadas = requisicoes.filter(r => r.status === 'VALIDADA' || r.status === 'PAGA');
+  const aprovadas = requisicoes.filter(r => r.status === 'VALIDADA' || r.status === 'FINALIZADO');
   res.json({ data: aprovadas });
 });
 
@@ -428,12 +428,34 @@ app.post('/api/pagamentos/:id/pagar', (req, res) => {
     return res.status(404).json({ error: 'Requisição não encontrada' });
   }
   
-  requisicoes[index].status = 'PAGA';
+  requisicoes[index].status = 'FINALIZADO';
   requisicoes[index].pagoEm = new Date().toISOString();
   
   // Registrar auditoria
   registrarAuditoria('PAGAMENTO_PROCESSADO', 'REQUISICAO', req.params.id, 'desconhecido', 
-    { status: 'PAGA', valor: requisicoes[index].valor }, 'localhost', 'api');
+    { status: 'FINALIZADO', valor: requisicoes[index].valor }, 'localhost', 'api');
+  
+  res.json(requisicoes[index]);
+});
+
+app.post('/api/pagamentos/:id/reverter', (req, res) => {
+  const index = requisicoes.findIndex(r => r.id === req.params.id);
+  if (index === -1) {
+    return res.status(404).json({ error: 'Requisição não encontrada' });
+  }
+  
+  if (requisicoes[index].status !== 'FINALIZADO') {
+    return res.status(400).json({ error: 'Apenas pagamentos finalizados podem ser revertidos' });
+  }
+  
+  const statusAnterior = requisicoes[index].status;
+  requisicoes[index].status = 'VALIDADA';
+  requisicoes[index].pagoEm = null;
+  requisicoes[index].revertidoEm = new Date().toISOString();
+  
+  // Registrar auditoria
+  registrarAuditoria('PAGAMENTO_REVERTIDO', 'REQUISICAO', req.params.id, 'desconhecido', 
+    { statusAnterior: statusAnterior, novoStatus: 'VALIDADA', valor: requisicoes[index].valor }, 'localhost', 'api');
   
   res.json(requisicoes[index]);
 });

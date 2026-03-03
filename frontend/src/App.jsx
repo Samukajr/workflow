@@ -33,6 +33,9 @@ function App() {
   const [arquivoAnexado, setArquivoAnexado] = useState(null)
   const [arquivoBase64, setArquivoBase64] = useState(null)
   
+  // Modal de confirmação de pagamento
+  const [pagamentoEmConfirmacao, setPagamentoEmConfirmacao] = useState(null)
+  
   // Login
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -203,16 +206,58 @@ function App() {
     }
   }
   
-  const pagarRequisicao = async (id) => {
+  const pagarRequisicao = (id) => {
+    // Abre modal de confirmação em vez de processar direto
+    const requisicao = requisicoes.find(r => r.id === id)
+    if (requisicao) {
+      setPagamentoEmConfirmacao(requisicao)
+    }
+  }
+
+  const confirmarPagamento = async () => {
+    if (!pagamentoEmConfirmacao) return
+    
     try {
-      await fetch(`${API_URL}/api/pagamentos/${id}/pagar`, {
+      const response = await fetch(`${API_URL}/api/pagamentos/${pagamentoEmConfirmacao.id}/pagar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       })
-      alert('Pagamento realizado!')
+
+      if (!response.ok) {
+        throw new Error('Erro ao processar pagamento')
+      }
+
+      alert('✅ Pagamento processado com sucesso!')
+      setPagamentoEmConfirmacao(null)
       loadRequisicoes()
     } catch (error) {
       alert('Erro ao pagar: ' + error.message)
+    }
+  }
+
+  const cancelarPagamento = () => {
+    setPagamentoEmConfirmacao(null)
+  }
+
+  const reverterPagamento = async (id) => {
+    if (!confirm('⚠️ Tem certeza que deseja reverter este pagamento?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/pagamentos/${id}/reverter`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      if (!response.ok) {
+        throw new Error('Erro ao reverter pagamento')
+      }
+
+      alert('✅ Pagamento revertido! Retornou para status VALIDADA ')
+      loadRequisicoes()
+    } catch (error) {
+      alert('Erro ao reverter: ' + error.message)
     }
   }
 
@@ -729,6 +774,8 @@ function App() {
         {page === 'pagamentos' && (
           <div>
             <h1>💰 Pagamentos</h1>
+            
+            <h2>⏳ Pagamentos Pendentes</h2>
             <table>
               <thead>
                 <tr>
@@ -771,6 +818,121 @@ function App() {
                 ))}
               </tbody>
             </table>
+
+            {requisicoes.filter(r => r.status === 'VALIDADA').length === 0 && (
+              <p className="empty-message">Nenhum pagamento pendente</p>
+            )}
+
+            <h2 style={{marginTop: '40px'}}>✅ Pagamentos Finalizados</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Descrição</th>
+                  <th>Valor</th>
+                  <th>Status</th>
+                  <th>Documento</th>
+                  <th>Pago em</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requisicoes.filter(r => r.status === 'FINALIZADO').map(req => (
+                  <tr key={req.id} style={{opacity: 0.8}}>
+                    <td>{req.numero}</td>
+                    <td>{req.descricao}</td>
+                    <td>R$ {req.valor.toFixed(2)}</td>
+                    <td><span className={`badge ${req.status.toLowerCase()}`}>{req.status}</span></td>
+                    <td>
+                      {req.anexo ? (
+                        <a 
+                          href={req.anexo.dados} 
+                          download={req.anexo.nome}
+                          className="anexo-link"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          📎 {req.anexo.nome}
+                        </a>
+                      ) : (
+                        <span style={{color: '#999'}}>Sem anexo</span>
+                      )}
+                    </td>
+                    <td>{req.pagoEm ? new Date(req.pagoEm).toLocaleDateString('pt-BR') : '-'}</td>
+                    <td>
+                      <button 
+                        className="btn-danger" 
+                        onClick={() => reverterPagamento(req.id)}
+                      >
+                        ↩️ Reverter
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {requisicoes.filter(r => r.status === 'FINALIZADO').length === 0 && (
+              <p className="empty-message">Nenhum pagamento finalizado</p>
+            )}
+
+            {/* Modal de Confirmação de Pagamento */}
+            {pagamentoEmConfirmacao && (
+              <div className="modal-overlay" onClick={cancelarPagamento}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <h2>💳 Confirmar Pagamento</h2>
+                  
+                  <div className="payment-details">
+                    <div className="detail-row">
+                      <strong>Número:</strong>
+                      <span>{pagamentoEmConfirmacao.numero}</span>
+                    </div>
+                    <div className="detail-row">
+                      <strong>Descrição:</strong>
+                      <span>{pagamentoEmConfirmacao.descricao}</span>
+                    </div>
+                    <div className="detail-row">
+                      <strong>Valor:</strong>
+                      <span style={{fontSize: '18px', fontWeight: 'bold', color: '#10b981'}}>
+                        R$ {pagamentoEmConfirmacao.valor.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="detail-row">
+                      <strong>Vencimento:</strong>
+                      <span>{new Date(pagamentoEmConfirmacao.dataVencimento).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                  </div>
+
+                  <div style={{marginTop: '20px', marginBottom: '20px'}}>
+                    <strong>📎 Documento para escanear código de barras:</strong>
+                    {pagamentoEmConfirmacao.anexo ? (
+                      <iframe 
+                        src={`${pagamentoEmConfirmacao.anexo.dados}#toolbar=0&navpanes=0&scrollbar=0`}
+                        style={{
+                          width: '100%',
+                          height: '400px',
+                          border: '2px solid #667eea',
+                          borderRadius: '8px',
+                          marginTop: '10px'
+                        }}
+                        title="Documento para pagamento"
+                      />
+                    ) : (
+                      <p style={{color: '#999', marginTop: '10px'}}>Nenhum documento anexado</p>
+                    )}
+                  </div>
+
+                  <div className="form-row">
+                    <button type="button" onClick={cancelarPagamento} className="btn-cancel">
+                      ❌ Cancelar
+                    </button>
+                    <button type="button" onClick={confirmarPagamento} className="btn-success" style={{fontSize: '16px', padding: '12px 24px'}}>
+                      ✅ Confirmar Pagamento
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

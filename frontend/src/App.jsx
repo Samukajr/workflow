@@ -371,13 +371,16 @@ function App() {
   // Funções para escaneamento via câmera
   const abrirCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
+      // Configuração otimizada para mobile e desktop
+      const constraints = {
         video: { 
-          facingMode: 'environment', // Câmera traseira em mobile
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          facingMode: { ideal: 'environment' }, // Câmera traseira em mobile, com fallback
+          width: { ideal: 1920, max: 1920 },
+          height: { ideal: 1080, max: 1080 }
         }
-      })
+      }
+      
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
       setStream(mediaStream)
       setMostrarCamera(true)
       setImagemCapturada(null)
@@ -387,10 +390,26 @@ function App() {
         const video = document.getElementById('camera-preview')
         if (video) {
           video.srcObject = mediaStream
+          // Garantir que o vídeo seja reproduzido (importante para iOS)
+          video.play().catch(err => {
+            console.log('Erro ao iniciar vídeo:', err)
+          })
         }
       }, 100)
     } catch (error) {
-      alert('❌ Erro ao acessar câmera: ' + error.message + '\n\nVerifique se você deu permissão para usar a câmera.')
+      let mensagemErro = '❌ Erro ao acessar câmera:\n\n'
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        mensagemErro += '🚫 Permissão negada.\n\nVocê precisa autorizar o uso da câmera nas configurações do navegador.'
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        mensagemErro += '📷 Nenhuma câmera encontrada.\n\nVerifique se seu dispositivo tem câmera disponível.'
+      } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        mensagemErro += '⚠️ Câmera em uso por outro aplicativo.\n\nFeche outros apps que estejam usando a câmera.'
+      } else {
+        mensagemErro += error.message
+      }
+      
+      alert(mensagemErro)
     }
   }
 
@@ -490,6 +509,28 @@ function App() {
       setLoggedIn(true)
     }
   }, [])
+
+  // Limpar stream da câmera quando componente desmontar
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [stream])
+
+  // Prevenir scroll do body quando modal da câmera estiver aberto
+  useEffect(() => {
+    if (mostrarCamera || pagamentoEmConfirmacao || validacaoEmAnalise || editandoUsuario) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [mostrarCamera, pagamentoEmConfirmacao, validacaoEmAnalise, editandoUsuario])
 
   if (!loggedIn) {
     return (
@@ -1191,6 +1232,7 @@ function App() {
                         id="camera-preview" 
                         autoPlay 
                         playsInline
+                        muted
                         className="camera-preview"
                       />
                       

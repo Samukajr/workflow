@@ -122,7 +122,8 @@ let logsAuditoria = [];
 
 // Middleware
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Aumentar limite para arquivos em Base64
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Middleware para registrar IPs
 app.use((req, res, next) => {

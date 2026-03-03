@@ -7,15 +7,15 @@
     "VITE_API_URL": "@vite_api_url"
   },
   "env.production": {
-    "VITE_API_URL": "https://workflow-backend.onrender.com"
+    "VITE_API_URL": "https://workflow-3gbs.onrender.com"
   },
   "env.preview": {
-    "VITE_API_URL": "https://workflow-backend.onrender.com"
+    "VITE_API_URL": "https://workflow-3gbs.onrender.com"
   },
   "redirects": [
     {
       "source": "/api/:path*",
-      "destination": "https://workflow-backend.onrender.com/api/:path*"
+      "destination": "https://workflow-3gbs.onrender.com/api/:path*"
     }
   ]
 }

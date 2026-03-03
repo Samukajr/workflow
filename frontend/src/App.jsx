@@ -30,6 +30,8 @@ function App() {
     valor: '',
     dataVencimento: ''
   })
+  const [arquivoAnexado, setArquivoAnexado] = useState(null)
+  const [arquivoBase64, setArquivoBase64] = useState(null)
   
   // Login
   const [email, setEmail] = useState('')
@@ -214,11 +216,50 @@ function App() {
     }
   }
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Validar tamanho (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('⚠️ Arquivo muito grande! Máximo: 5MB')
+      e.target.value = ''
+      return
+    }
+
+    // Validar tipo
+    const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    if (!tiposPermitidos.includes(file.type)) {
+      alert('⚠️ Tipo de arquivo não permitido! Use: PDF, JPG, PNG ou WEBP')
+      e.target.value = ''
+      return
+    }
+
+    setArquivoAnexado(file)
+
+    // Converter para Base64
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setArquivoBase64({
+        nome: file.name,
+        tipo: file.type,
+        tamanho: file.size,
+        dados: reader.result
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+
   const submeterRequisicao = async (e) => {
     e.preventDefault()
     
     if (!novaRequisicao.descricao || !novaRequisicao.valor || !novaRequisicao.dataVencimento) {
       alert('Preencha todos os campos!')
+      return
+    }
+
+    if (!arquivoBase64) {
+      alert('⚠️ Anexe um documento (boleto, nota fiscal ou fatura)!')
       return
     }
     
@@ -231,13 +272,19 @@ function App() {
           valor: parseFloat(novaRequisicao.valor),
           dataVencimento: novaRequisicao.dataVencimento,
           departamento: user?.departamento,
-          usuario: user?.nome
+          usuario: user?.nome,
+          anexo: arquivoBase64
         })
       })
       
       if (response.ok) {
         alert('✅ Requisição enviada para validação!')
         setNovaRequisicao({ descricao: '', valor: '', dataVencimento: '' })
+        setArquivoAnexado(null)
+        setArquivoBase64(null)
+        // Limpar input file
+        const fileInput = document.querySelector('input[type="file"]')
+        if (fileInput) fileInput.value = ''
         loadRequisicoes()
       } else {
         alert('Erro ao enviar requisição')
@@ -536,6 +583,23 @@ function App() {
                     />
                   </div>
                 </div>
+
+                <div className="form-group">
+                  <label>📎 Anexar Documento (Boleto, NF ou Fatura)</label>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp"
+                    onChange={handleFileChange}
+                    required
+                    className="file-input"
+                  />
+                  {arquivoAnexado && (
+                    <div className="file-info">
+                      ✅ {arquivoAnexado.name} ({(arquivoAnexado.size / 1024).toFixed(0)} KB)
+                    </div>
+                  )}
+                  <small className="help-text">Formatos aceitos: PDF, JPG, PNG, WEBP (máx. 5MB)</small>
+                </div>
                 
                 <button type="submit" className="btn-submit">✅ Enviar para Validação</button>
               </form>
@@ -624,6 +688,7 @@ function App() {
                   <th>Descrição</th>
                   <th>Valor</th>
                   <th>Status</th>
+                  <th>Documento</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -634,6 +699,21 @@ function App() {
                     <td>{req.descricao}</td>
                     <td>R$ {req.valor.toFixed(2)}</td>
                     <td><span className={`badge ${req.status.toLowerCase()}`}>{req.status}</span></td>
+                    <td>
+                      {req.anexo ? (
+                        <a 
+                          href={req.anexo.dados} 
+                          download={req.anexo.nome}
+                          className="anexo-link"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          📎 {req.anexo.nome}
+                        </a>
+                      ) : (
+                        <span style={{color: '#999'}}>Sem anexo</span>
+                      )}
+                    </td>
                     <td>
                       <button className="btn-success" onClick={() => aprovarRequisicao(req.id)}>
                         Aprovar
@@ -656,6 +736,7 @@ function App() {
                   <th>Descrição</th>
                   <th>Valor</th>
                   <th>Status</th>
+                  <th>Documento</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -666,6 +747,21 @@ function App() {
                     <td>{req.descricao}</td>
                     <td>R$ {req.valor.toFixed(2)}</td>
                     <td><span className={`badge ${req.status.toLowerCase()}`}>{req.status}</span></td>
+                    <td>
+                      {req.anexo ? (
+                        <a 
+                          href={req.anexo.dados} 
+                          download={req.anexo.nome}
+                          className="anexo-link"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          📎 {req.anexo.nome}
+                        </a>
+                      ) : (
+                        <span style={{color: '#999'}}>Sem anexo</span>
+                      )}
+                    </td>
                     <td>
                       <button className="btn-primary" onClick={() => pagarRequisicao(req.id)}>
                         Processar Pagamento

@@ -330,6 +330,19 @@ app.get('/api/requisicoes/:id', (req, res) => {
 });
 
 app.post('/api/requisicoes', (req, res) => {
+  const { anexo } = req.body;
+
+  // Validar anexo
+  if (!anexo || !anexo.dados || !anexo.nome) {
+    return res.status(400).json({ error: 'Anexo de documento é obrigatório' });
+  }
+
+  // Validar tamanho (Base64 é ~33% maior que o arquivo original)
+  const tamanhoEstimado = anexo.tamanho || 0;
+  if (tamanhoEstimado > 5 * 1024 * 1024) {
+    return res.status(400).json({ error: 'Arquivo muito grande. Máximo: 5MB' });
+  }
+
   const novaRequisicao = {
     id: String(requisicoes.length + 1),
     numero: `REQ-${String(requisicoes.length + 1).padStart(3, '0')}`,
@@ -342,7 +355,7 @@ app.post('/api/requisicoes', (req, res) => {
   
   // Registrar auditoria
   registrarAuditoria('REQUISICAO_CRIADA', 'REQUISICAO', novaRequisicao.id, 'desconhecido',
-    { numero: novaRequisicao.numero, valor: novaRequisicao.valor, descricao: novaRequisicao.descricao }, 
+    { numero: novaRequisicao.numero, valor: novaRequisicao.valor, descricao: novaRequisicao.descricao, anexo: anexo.nome }, 
     req.ipAddress, req.userAgent);
   
   res.status(201).json(novaRequisicao);

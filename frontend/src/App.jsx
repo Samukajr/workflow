@@ -16,6 +16,13 @@ function App() {
     senha: '',
     tipo: 'DEPARTAMENTO'
   })
+  const [editandoUsuario, setEditandoUsuario] = useState(null)
+  const [usuarioParaEditar, setUsuarioParaEditar] = useState({
+    nome: '',
+    email: '',
+    senha: '',
+    tipo: ''
+  })
   
   // Formulário de submissão
   const [novaRequisicao, setNovaRequisicao] = useState({
@@ -124,6 +131,60 @@ function App() {
       loadUsuarios()
     } catch (error) {
       alert('Erro ao criar usuário: ' + error.message)
+    }
+  }
+
+  const iniciarEdicaoUsuario = (usuario) => {
+    setEditandoUsuario(usuario.id)
+    setUsuarioParaEditar({
+      nome: usuario.nome,
+      email: usuario.email,
+      senha: '', // Senha em branco - só preenche se quiser alterar
+      tipo: usuario.tipo
+    })
+  }
+
+  const cancelarEdicaoUsuario = () => {
+    setEditandoUsuario(null)
+    setUsuarioParaEditar({ nome: '', email: '', senha: '', tipo: '' })
+  }
+
+  const salvarEdicaoUsuario = async (e) => {
+    e.preventDefault()
+
+    if (!usuarioParaEditar.nome || !usuarioParaEditar.email || !usuarioParaEditar.tipo) {
+      alert('Nome, email e perfil são obrigatórios!')
+      return
+    }
+
+    try {
+      const payload = {
+        nome: usuarioParaEditar.nome,
+        email: usuarioParaEditar.email,
+        tipo: usuarioParaEditar.tipo
+      }
+
+      // Só envia senha se foi preenchida
+      if (usuarioParaEditar.senha.trim() !== '') {
+        payload.senha = usuarioParaEditar.senha
+      }
+
+      const response = await fetch(`${API_URL}/api/usuarios/${editandoUsuario}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao atualizar usuário')
+      }
+
+      alert('✅ Usuário atualizado com sucesso!')
+      cancelarEdicaoUsuario()
+      loadUsuarios()
+    } catch (error) {
+      alert('Erro ao atualizar usuário: ' + error.message)
     }
   }
   
@@ -339,6 +400,7 @@ function App() {
                     <th>Email</th>
                     <th>Perfil</th>
                     <th>Criado em</th>
+                    <th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -348,10 +410,87 @@ function App() {
                       <td>{u.email}</td>
                       <td>{u.tipo}</td>
                       <td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('pt-BR') : '-'}</td>
+                      <td>
+                        <button 
+                          onClick={() => iniciarEdicaoUsuario(u)}
+                          className="btn-edit"
+                          title="Editar usuário"
+                        >
+                          ✏️ Editar
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            )}
+
+            {/* Modal de Edição */}
+            {editandoUsuario && (
+              <div className="modal-overlay" onClick={cancelarEdicaoUsuario}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <h2>✏️ Editar Usuário</h2>
+                  <form onSubmit={salvarEdicaoUsuario} className="submission-form">
+                    <div className="form-group">
+                      <label>👤 Nome</label>
+                      <input
+                        type="text"
+                        placeholder="Nome completo"
+                        value={usuarioParaEditar.nome}
+                        onChange={(e) => setUsuarioParaEditar({ ...usuarioParaEditar, nome: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>📧 Email</label>
+                      <input
+                        type="email"
+                        placeholder="usuario@empresa.com"
+                        value={usuarioParaEditar.email}
+                        onChange={(e) => setUsuarioParaEditar({ ...usuarioParaEditar, email: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>🔐 Nova Senha (deixe em branco para manter)</label>
+                        <input
+                          type="password"
+                          placeholder="Nova senha (opcional)"
+                          value={usuarioParaEditar.senha}
+                          onChange={(e) => setUsuarioParaEditar({ ...usuarioParaEditar, senha: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>🏷️ Perfil</label>
+                        <select
+                          value={usuarioParaEditar.tipo}
+                          onChange={(e) => setUsuarioParaEditar({ ...usuarioParaEditar, tipo: e.target.value })}
+                          required
+                        >
+                          <option value="SUPER_ADMIN">Super Admin</option>
+                          <option value="ADMIN">Administrador</option>
+                          <option value="VALIDACAO">Validador</option>
+                          <option value="FINANCEIRO">Financeiro</option>
+                          <option value="DEPARTAMENTO">Equipe de Submissão</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <button type="button" onClick={cancelarEdicaoUsuario} className="btn-cancel">
+                        ❌ Cancelar
+                      </button>
+                      <button type="submit" className="btn-submit">
+                        ✅ Salvar Alterações
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             )}
           </div>
         )}

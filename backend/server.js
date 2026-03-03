@@ -260,6 +260,59 @@ app.post('/api/usuarios', requireSuperAdmin, (req, res) => {
   });
 });
 
+app.put('/api/usuarios/:id', requireSuperAdmin, (req, res) => {
+  const { id } = req.params;
+  const { nome, email, senha, tipo } = req.body;
+
+  const usuarioIndex = usuarios.findIndex(u => u.id === id);
+  if (usuarioIndex === -1) {
+    return res.status(404).json({ error: 'Usuário não encontrado' });
+  }
+
+  // Validar tipo se fornecido
+  if (tipo) {
+    const tiposPermitidos = ['SUPER_ADMIN', 'ADMIN', 'VALIDACAO', 'FINANCEIRO', 'DEPARTAMENTO'];
+    if (!tiposPermitidos.includes(tipo)) {
+      return res.status(400).json({ error: `Tipo inválido. Use: ${tiposPermitidos.join(', ')}` });
+    }
+  }
+
+  // Validar email único se estiver sendo alterado
+  if (email) {
+    const emailNormalizado = String(email).trim().toLowerCase();
+    const emailJaExiste = usuarios.some(u => u.id !== id && u.email.toLowerCase() === emailNormalizado);
+    if (emailJaExiste) {
+      return res.status(409).json({ error: 'Já existe outro usuário com este email' });
+    }
+    usuarios[usuarioIndex].email = emailNormalizado;
+  }
+
+  // Atualizar campos
+  if (nome) usuarios[usuarioIndex].nome = String(nome).trim();
+  if (senha) usuarios[usuarioIndex].senha = hashSenha(senha);
+  if (tipo) usuarios[usuarioIndex].tipo = tipo;
+
+  usuarios[usuarioIndex].updatedAt = new Date().toISOString();
+
+  registrarAuditoria(
+    'USUARIO_ATUALIZADO',
+    'USUARIO',
+    id,
+    req.superAdmin.id,
+    { nome: usuarios[usuarioIndex].nome, email: usuarios[usuarioIndex].email, tipo: usuarios[usuarioIndex].tipo },
+    req.ipAddress,
+    req.userAgent
+  );
+
+  res.json({
+    id: usuarios[usuarioIndex].id,
+    nome: usuarios[usuarioIndex].nome,
+    email: usuarios[usuarioIndex].email,
+    tipo: usuarios[usuarioIndex].tipo,
+    updatedAt: usuarios[usuarioIndex].updatedAt
+  });
+});
+
 // ==========================================
 // ROTAS DE REQUISIÇÕES
 // ==========================================

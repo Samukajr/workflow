@@ -1,15 +1,8 @@
 {
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
-  "framework": "react",
-  "nodeVersion": "20.x",
+  "framework": "vite",
   "env": {
-    "VITE_API_URL": "@vite_api_url"
-  },
-  "env.production": {
-    "VITE_API_URL": "https://workflow-3gbs.onrender.com"
-  },
-  "env.preview": {
     "VITE_API_URL": "https://workflow-3gbs.onrender.com"
   },
   "redirects": [

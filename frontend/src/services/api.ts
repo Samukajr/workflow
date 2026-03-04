@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import { rateLimitAlert } from './alertService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -30,6 +31,10 @@ class ApiClient {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           window.location.href = '/login';
+        } else if (error.response?.status === 429) {
+          const retryAfter = error.response.headers['retry-after'];
+          const retrySeconds = retryAfter ? parseInt(retryAfter, 10) : 60;
+          rateLimitAlert.trigger(retrySeconds);
         }
         return Promise.reject(error);
       },

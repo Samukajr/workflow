@@ -30,13 +30,14 @@ const processPaymentSchema = Joi.object({
   notes: Joi.string().optional(),
 });
 
+const closePaymentSchema = Joi.object({
+  payment_request_id: Joi.string().uuid().required(),
+  comments: Joi.string().optional(),
+});
+
 export const submitPaymentRequest = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new ErrorHandler(401, 'Não autenticado');
-  }
-
-  if (req.user.department !== 'submissao') {
-    throw new ErrorHandler(403, 'Apenas departamento de submissão pode criar requisições');
   }
 
   const { error, value } = submitPaymentSchema.validate(req.body);
@@ -103,10 +104,6 @@ export const validatePaymentRequest = asyncHandler(async (req: Request, res: Res
     throw new ErrorHandler(401, 'Não autenticado');
   }
 
-  if (req.user.department !== 'validacao') {
-    throw new ErrorHandler(403, 'Apenas departamento de validação pode validar requisições');
-  }
-
   const { error, value } = validatePaymentSchema.validate(req.body);
 
   if (error) {
@@ -136,10 +133,6 @@ export const processPayment = asyncHandler(async (req: Request, res: Response) =
     throw new ErrorHandler(401, 'Não autenticado');
   }
 
-  if (req.user.department !== 'financeiro') {
-    throw new ErrorHandler(403, 'Apenas departamento financeiro pode processar pagamentos');
-  }
-
   const { error, value } = processPaymentSchema.validate(req.body);
 
   if (error) {
@@ -158,6 +151,34 @@ export const processPayment = asyncHandler(async (req: Request, res: Response) =
     res.status(200).json({
       success: true,
       message: 'Pagamento processado com sucesso',
+      payment_request: paymentRequest,
+    });
+  } catch (err: any) {
+    throw new ErrorHandler(400, err.message);
+  }
+});
+
+export const closePaymentRequest = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ErrorHandler(401, 'Não autenticado');
+  }
+
+  const { error, value } = closePaymentSchema.validate(req.body);
+
+  if (error) {
+    throw new ErrorHandler(400, error.details[0].message);
+  }
+
+  try {
+    const paymentRequest = await paymentService.closePaymentRequest(
+      value.payment_request_id,
+      req.user.id,
+      value.comments,
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Solicitação encerrada com sucesso',
       payment_request: paymentRequest,
     });
   } catch (err: any) {

@@ -132,6 +132,39 @@ export async function processPayment(
   return paidRequest;
 }
 
+export async function closePaymentRequest(
+  paymentRequestId: string,
+  closedBy: string,
+  comments?: string,
+): Promise<PaymentRequest> {
+  const paymentRequest = await queries.getPaymentRequestById(paymentRequestId);
+
+  if (!paymentRequest) {
+    throw new Error('Requisição de pagamento não encontrada');
+  }
+
+  if (paymentRequest.status !== 'pago') {
+    throw new Error('A solicitação só pode ser encerrada após o status pago');
+  }
+
+  await queries.createWorkflowEntry(
+    paymentRequestId,
+    'encerramento',
+    closedBy,
+    'pago',
+    'pago',
+    comments || 'Solicitação encerrada pelo financeiro',
+  );
+
+  await queries.createAuditLog(closedBy, 'REQUISICAO_ENCERRADA', 'payment_request', paymentRequestId, {
+    comments: comments || null,
+  });
+
+  logger.info(`Requisição ${paymentRequestId} encerrada por ${closedBy}`);
+
+  return paymentRequest;
+}
+
 export async function getPaymentRequestDetails(id: string): Promise<{ request: PaymentRequest; workflow: PaymentWorkflow[] } | null> {
   const request = await queries.getPaymentRequestById(id);
 

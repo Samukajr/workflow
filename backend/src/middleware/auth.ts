@@ -11,6 +11,16 @@ declare global {
   }
 }
 
+const PRIVILEGED_DEPARTMENTS = new Set(['admin', 'superadmin']);
+
+export function hasDepartmentAccess(userDepartment: string, allowedDepartments: string[]): boolean {
+  if (PRIVILEGED_DEPARTMENTS.has(userDepartment)) {
+    return true;
+  }
+
+  return allowedDepartments.includes(userDepartment);
+}
+
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
   const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
@@ -66,7 +76,7 @@ export function requireDepartment(...departments: string[]) {
       return;
     }
 
-    if (!departments.includes(req.user.department)) {
+    if (!hasDepartmentAccess(req.user.department, departments)) {
       const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
       logger.warn(
         {

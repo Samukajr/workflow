@@ -157,20 +157,36 @@ router.post('/process', authMiddleware, requireDepartment('financeiro'), payment
 
 /**
  * @swagger
- * /api/payments/{id}:
- *   get:
- *     summary: Obter detalhes de uma requisição de pagamento
+ * /api/payments/close:
+ *   post:
+ *     summary: Encerrar solicitação após pagamento
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               payment_request_id:
+ *                 type: string
+ *               comments:
+ *                 type: string
  */
-router.get('/:id', authMiddleware, paymentController.getPaymentRequest);
+router.post('/close', authMiddleware, requireDepartment('financeiro'), paymentController.closePaymentRequest);
+
+/**
+ * @swagger
+ * /api/payments/dashboard/stats:
+ *   get:
+ *     summary: Obter estatísticas do dashboard
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/dashboard/stats', authMiddleware, paymentController.getDashboard);
 
 /**
  * @swagger
@@ -198,13 +214,19 @@ router.get('/', authMiddleware, paymentController.listPaymentRequests);
 
 /**
  * @swagger
- * /api/payments/dashboard/stats:
+ * /api/payments/{id}:
  *   get:
- *     summary: Obter estatísticas do dashboard
+ *     summary: Obter detalhes de uma requisição de pagamento
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
  */
-router.get('/dashboard/stats', authMiddleware, paymentController.getDashboard);
+router.get('/:id', authMiddleware, paymentController.getPaymentRequest);
 
 export default router;

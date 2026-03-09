@@ -3,7 +3,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  department: 'financeiro' | 'validacao' | 'submissao';
+  department: 'financeiro' | 'validacao' | 'submissao' | 'admin' | 'superadmin';
   password_hash: string;
   is_active: boolean;
   created_at: Date;
@@ -14,7 +14,7 @@ export interface UserToken {
   id: string;
   email: string;
   name: string;
-  department: 'financeiro' | 'validacao' | 'submissao';
+  department: 'financeiro' | 'validacao' | 'submissao' | 'admin' | 'superadmin';
 }
 
 // Requisições de Pagamento
@@ -38,9 +38,9 @@ export interface PaymentRequest {
 export interface PaymentWorkflow {
   id: string;
   payment_request_id: string;
-  action: 'submissao' | 'validacao' | 'rejeicao' | 'aprovacao' | 'pagamento' | 'cancelamento';
+  action: 'submissao' | 'validacao' | 'rejeicao' | 'aprovacao' | 'pagamento' | 'confirmacao_pagamento' | 'encerramento' | 'cancelamento';
   performed_by: string;
-  status_from: string;
+  status_from: string | null;
   status_to: string;
   comments: string;
   created_at: Date;

@@ -189,4 +189,54 @@ export const paymentService = {
   async getAnalytics(period: 'today' | 'week' | 'month' | 'quarter' | 'year' = 'month') {
     return apiClient.get<{ success: boolean; data: any }>(`/analytics/metrics?period=${period}`);
   },
+
+  // ===== FASE 3D: BANKING/ERP INTEGRATION =====
+
+  // Criar integração bancária
+  async createBankingIntegration(data: {
+    bank_type: string;
+    name: string;
+    api_key?: string;
+    api_secret?: string;
+    supported_methods: string[];
+  }) {
+    return apiClient.post<{ success: boolean; message: string; data: any }>('/banking/integrations', data);
+  },
+
+  // Listar integrações bancárias
+  async getBankingIntegrations() {
+    return apiClient.get<{ success: boolean; data: any[] }>('/banking/integrations');
+  },
+
+  // Testar conexão com banco
+  async testBankingConnection(integrationId: string) {
+    return apiClient.post<{ success: boolean; message: string; data: any }>(
+      `/banking/integrations/${integrationId}/test`,
+      {}
+    );
+  },
+
+  // Iniciar pagamento via banco
+  async initiateBankPayment(data: {
+    payment_request_id: string;
+    bank_integration_id: string;
+    payment_method: string;
+  }) {
+    return apiClient.post<{ success: boolean; message: string; data: any }>(
+      '/banking/payments/initiate',
+      data
+    );
+  },
+
+  // Obter reconciliações pendentes
+  async getPendingReconciliations() {
+    return apiClient.get<{ success: boolean; data: any }>('/banking/reconciliation/pending');
+  },
+
+  // Obter status de reconciliação
+  async getReconciliationStatus(paymentRequestId: string) {
+    return apiClient.get<{ success: boolean; data: any }>(
+      `/banking/reconciliation/${paymentRequestId}`
+    );
+  },
 };

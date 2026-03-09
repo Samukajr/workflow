@@ -80,8 +80,8 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
-          <p>Demonstração: Use qualquer email e senha</p>
-          <p className="text-xs mt-2">Exemplo: teste@empresa.com / 123456</p>
+          <p>Use os usuarios reais do sistema</p>
+          <p className="text-xs mt-2">Exemplo: superadmin@empresa.com</p>
         </div>
       </div>
     </div>

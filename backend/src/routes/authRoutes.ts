@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import * as authController from '../controllers/authController';
+import * as passwordResetController from '../controllers/passwordResetController';
 import { authMiddleware } from '../middleware/auth';
+import { passwordResetLimiter } from '../middleware/rateLimit';
 
 const router = Router();
 
@@ -59,5 +61,63 @@ router.post('/login', authController.login);
  *       - bearerAuth: []
  */
 router.get('/me', authMiddleware, authController.me);
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Solicitar recuperação de senha
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ */
+router.post('/forgot-password', passwordResetLimiter, passwordResetController.forgotPassword);
+
+/**
+ * @swagger
+ * /api/auth/validate-reset-token:
+ *   post:
+ *     summary: Validar token de reset
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ */
+router.post('/validate-reset-token', passwordResetController.validateToken);
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Redefinir senha com token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *               confirmPassword:
+ *                 type: string
+ */
+router.post('/reset-password', passwordResetController.resetPasswordController);
 
 export default router;

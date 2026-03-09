@@ -6,6 +6,8 @@ import { Sidebar } from '@/components/Sidebar';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { RateLimitAlert } from '@/components/RateLimitAlert';
 import { LoginPage } from '@/pages/LoginPage';
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
+import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { SubmitPaymentPage } from '@/pages/SubmitPaymentPage';
 import { LgpdPage } from '@/pages/LgpdPage';
@@ -22,6 +24,8 @@ function App() {
       <RateLimitAlert />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route
           path="/*"

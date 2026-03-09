@@ -24,6 +24,14 @@ export const env = {
   UPLOAD_DIR: process.env.UPLOAD_DIR || './uploads',
   MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10),
 
+  // Email Configuration
+  SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || '587', 10),
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASSWORD: process.env.SMTP_PASSWORD || '',
+  APP_NAME: process.env.APP_NAME || 'Sistema de Workflow',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+
   // LGPD & Security
   SESSION_TIMEOUT: parseInt(process.env.SESSION_TIMEOUT || '3600', 10),
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 export function LoginPage() {
@@ -54,6 +54,15 @@ export function LoginPage() {
             {loading ? 'Autenticando...' : 'Login'}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <Link
+            to="/forgot-password"
+            className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            Esqueci minha senha
+          </Link>
+        </div>
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-gray-700 mb-2">

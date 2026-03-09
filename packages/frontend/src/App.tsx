@@ -3,9 +3,11 @@ import { useAuthStore } from './store/authStore'
 import Layout from './components/Layout'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
-import RequisicoesPage from './pages/RequisicoesPage'
-import ValidacoesPage from './pages/ValidacoesPage'
-import PagamentosPage from './pages/PagamentosPage'
+import SubmitPaymentPage from './pages/SubmitPaymentPage'
+import ValidatePage from './pages/ValidatePage'
+import ProcessPaymentPage from './pages/ProcessPaymentPage'
+import PaymentListPage from './pages/PaymentListPage'
+import PaymentDetailsPage from './pages/PaymentDetailsPage'
 import RelatoriosPage from './pages/RelatoriosPage'
 
 export default function App() {
@@ -27,10 +29,19 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<DashboardPage />} />
-          <Route path="/requisicoes" element={<RequisicoesPage />} />
-          <Route path="/validacoes" element={<ValidacoesPage />} />
-          <Route path="/pagamentos" element={<PagamentosPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/submit" element={<SubmitPaymentPage />} />
+          <Route path="/validate" element={<ValidatePage />} />
+          <Route path="/process" element={<ProcessPaymentPage />} />
+          <Route path="/payments" element={<PaymentListPage />} />
+          <Route path="/payments/:id" element={<PaymentDetailsPage />} />
           <Route path="/relatorios" element={<RelatoriosPage />} />
+
+          {/* Rotas legadas para compatibilidade */}
+          <Route path="/requisicoes" element={<Navigate to="/payments" replace />} />
+          <Route path="/validacoes" element={<Navigate to="/validate" replace />} />
+          <Route path="/pagamentos" element={<Navigate to="/process" replace />} />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

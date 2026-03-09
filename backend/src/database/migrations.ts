@@ -1,11 +1,15 @@
 import { pool } from '../config/database';
 import logger from '../utils/logger';
 import { createDocumentSignatureTable } from '../services/signatureService';
+import { createPasswordResetTable } from './passwordResetMigrations';
 
 export async function initializeDatabase(): Promise<void> {
   try {
     // Criar tabela de assinaturas digitais
     await createDocumentSignatureTable();
+
+    // Criar tabela de tokens de reset de senha
+    await createPasswordResetTable();
 
     await pool.query(`
       -- Criar enum para departamentos

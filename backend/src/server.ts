@@ -8,6 +8,8 @@ import { env } from './config/environment';
 import { testConnection, closePool } from './config/database';
 import { initializeDatabase, seedDatabase } from './database/migrations';
 import { createLGPDTables, processDataDeletionQueue } from './database/lgpdMigrations';
+import { cleanExpiredTokens } from './database/passwordResetMigrations';
+import { verifyEmailConnection } from './services/emailService';
 import logger from './utils/logger';
 import { errorMiddleware } from './middleware/errorHandler';
 import { helmetConfig } from './middleware/helmetConfig';
@@ -119,10 +121,16 @@ async function startServer() {
     await createLGPDTables();
     await seedDatabase();
 
+    // Verificar conexão com servidor de email (não-bloqueante)
+    verifyEmailConnection().catch((err) => {
+      logger.warn('⚠️ Servidor de email não configurado. Recuperação de senha indisponível.');
+    });
+
     // Agendar limpeza de dados deletados (a cada 24 horas)
     if (env.NODE_ENV === 'production') {
       setInterval(() => {
         processDataDeletionQueue().catch((err) => logger.error('Erro no cleanup LGPD:', err));
+        cleanExpiredTokens().catch((err) => logger.error('Erro ao limpar tokens:', err));
       }, 24 * 60 * 60 * 1000);
     }
 

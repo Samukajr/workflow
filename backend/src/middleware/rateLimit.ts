@@ -23,6 +23,26 @@ export const authLimiter = rateLimit({
 });
 
 /**
+ * Rate limiter para recuperação de senha
+ * Máximo 3 tentativas a cada hora por IP (evitar spam de emails)
+ */
+export const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 3, // 3 requisições
+  message: {
+    success: false,
+    message: 'Muitas solicitações de recuperação. Tente novamente em 1 hora.',
+    retryAfter: 60 * 60,
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => env.NODE_ENV === 'development',
+  keyGenerator: (req) => {
+    return req.ip || req.socket.remoteAddress || 'unknown';
+  },
+});
+
+/**
  * Rate limiter para upload de arquivos
  * Máximo 10 uploads por minuto por usuário
  */

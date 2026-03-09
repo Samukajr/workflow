@@ -52,6 +52,9 @@ export async function initializeDatabase(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
       CREATE INDEX IF NOT EXISTS idx_users_department ON users(department);
 
+      -- FASE 3B: Coluna opcional para contato SMS
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(30);
+
       -- Tabela de Requisições de Pagamento
       CREATE TABLE IF NOT EXISTS payment_requests (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -32,6 +32,13 @@ export const env = {
   APP_NAME: process.env.APP_NAME || 'Sistema de Workflow',
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
 
+  // SMS Configuration
+  SMS_ENABLED: process.env.SMS_ENABLED === 'true',
+  SMS_PROVIDER: process.env.SMS_PROVIDER || 'webhook',
+  SMS_WEBHOOK_URL: process.env.SMS_WEBHOOK_URL || '',
+  SMS_WEBHOOK_TOKEN: process.env.SMS_WEBHOOK_TOKEN || '',
+  SMS_FALLBACK_PHONE: process.env.SMS_FALLBACK_PHONE || '',
+
   // LGPD & Security
   SESSION_TIMEOUT: parseInt(process.env.SESSION_TIMEOUT || '3600', 10),
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',

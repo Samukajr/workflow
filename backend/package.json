@@ -10,7 +10,11 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
     "test": "jest",
-    "migrate": "node -r ts-node/register src/database/migrations.ts"
+    "migrate": "node -r ts-node/register src/database/migrations.ts",
+    "seed": "ts-node src/scripts/seed.ts",
+    "users:list": "ts-node src/scripts/listUsers.ts",
+    "users:restore": "ts-node src/scripts/restoreUsers.ts",
+    "departments:update": "ts-node src/scripts/updateDepartments.ts"
   },
   "keywords": [
     "workflow",
@@ -50,6 +54,7 @@
     "@types/multer": "^1.4.7",
     "@types/node": "^20.3.1",
     "@types/pg": "^8.10.2",
+    "@types/superagent": "^8.1.9",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^9.0.2",

@@ -3,6 +3,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  phone?: string;
   department: 'financeiro' | 'validacao' | 'submissao' | 'admin' | 'superadmin';
   password_hash: string;
   is_active: boolean;

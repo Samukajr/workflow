@@ -17,6 +17,8 @@
 cd E:\APP\WORKFLOW
 ```
 
+Observação: este guia contempla o backend em backend e frontend em packages/frontend.
+
 ### Passo 2: Instalar Dependências
 
 ```bash
@@ -36,35 +38,49 @@ cp .env.example .env
 # Edite o arquivo .env com suas credenciais PostgreSQL
 ```
 
-**Exemplo de .env:**
+**Exemplo de .env do backend (.env em backend):**
 ```env
-BACKEND_PORT=3000
+PORT=3000
 DB_HOST=localhost
 DB_PORT=5432
-DB_USERNAME=workflow_user
+DB_USER=postgres
 DB_PASSWORD=sua_senha_aqui
-DB_NAME=workflow_db
+DB_NAME=workflow_pagamentos
 JWT_SECRET=sua_chave_secreta_muito_longa_aqui
+
+# Email
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=seu-email@gmail.com
+SMTP_PASSWORD=sua-senha-app
+FRONTEND_URL=http://localhost:5173
+
+# SMS (Fase 3B)
+SMS_ENABLED=true
+SMS_PROVIDER=webhook
+SMS_WEBHOOK_URL=https://seu-gateway-sms.exemplo/send
+SMS_WEBHOOK_TOKEN=seu_token
+SMS_FALLBACK_PHONE=5511999999999
 ```
 
-### Passo 4: Executar Migrações do Banco de Dados
+### Passo 4: Inicializar Banco de Dados
 
 ```bash
 # Navegue até a pasta do backend
-cd packages/backend
+cd backend
 
-# Execute as migrações Prisma
-npx prisma migrate dev
+# Executar servidor uma vez para criar tabelas/migrações automáticas
+npm run dev
 
-# (Opcional) Popular com dados de exemplo
-npx prisma db seed
+# Em outro terminal (opcional), popular usuários de exemplo
+npm run seed
 ```
 
 ### Passo 5: Iniciar os Serviços
 
 **Terminal 1 - Backend:**
 ```bash
-cd packages/backend
+cd backend
 npm run dev
 # Servidor rodará em http://localhost:3000
 ```

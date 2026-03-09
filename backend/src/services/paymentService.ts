@@ -138,9 +138,12 @@ export async function validatePaymentRequest(
       try {
         const dispatch = await notifySecondApprovers(paymentRequest, validatedBy, comments);
         await queries.createAuditLog(validatedBy, 'NOTIFICACAO_SEGUNDA_APROVACAO', 'payment_request', paymentRequestId, {
-          attempted: dispatch.attempted,
-          sent: dispatch.sent,
-          failed: dispatch.failed,
+          email_attempted: dispatch.email_attempted,
+          email_sent: dispatch.email_sent,
+          email_failed: dispatch.email_failed,
+          sms_attempted: dispatch.sms_attempted,
+          sms_sent: dispatch.sms_sent,
+          sms_failed: dispatch.sms_failed,
         });
       } catch (notificationError) {
         logger.error('Falha ao disparar notificação de segunda aprovação:', notificationError);

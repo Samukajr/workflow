@@ -30,6 +30,19 @@ export interface PaymentRequest {
   supplier_document: string;
   due_date: Date;
   notes: string;
+  // Fase 2: Aprovação dupla
+  requires_double_approval?: boolean;
+  first_approver_id?: string;
+  second_approver_id?: string;
+  approval_completed_at?: Date;
+  // Fase 2: Anti-fraude
+  supplier_blocklisted?: boolean;
+  blocklist_reason?: string;
+  // Fase 2: Encerramento formal
+  close_reason?: string;
+  close_evidence_url?: string;
+  closed_by?: string;
+  closed_at?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -87,3 +100,84 @@ export interface ProcessPaymentDTO {
   transaction_id: string;
   notes?: string;
 }
+
+// ===== FASE 2: GOVERNANÇA CORPORATIVA =====
+
+// Alçadas de aprovação
+export interface ApprovalRule {
+  id: string;
+  min_amount: number;
+  max_amount: number;
+  requires_double_approval: boolean;
+  requires_superadmin: boolean;
+  description?: string;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Aprovações múltiplas
+export interface PaymentApproval {
+  id: string;
+  payment_request_id: string;
+  approver_id: string;
+  approval_order: number; // 1 para primeira, 2 para segunda
+  decision: 'aprovado' | 'rejeitado';
+  comments?: string;
+  created_at: Date;
+}
+
+// Checklist de conformidade
+export interface ComplianceChecklistTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  items: ChecklistItem[];
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  required: boolean;
+  category: string;
+}
+
+export interface PaymentComplianceChecklist {
+  id: string;
+  payment_request_id: string;
+  template_id: string;
+  checked_items: string[]; // Array de IDs dos items checados
+  checked_by?: string;
+  completed_at?: Date;
+  created_at: Date;
+}
+
+// Blocklist de fornecedores
+export interface SupplierBlocklist {
+  id: string;
+  supplier_document: string;
+  supplier_name?: string;
+  reason: string;
+  blocked_by: string;
+  is_active: boolean;
+  created_at: Date;
+  removed_at?: Date;
+}
+
+// DTOs Fase 2
+export interface ValidatePaymentRequestDTOV2 {
+  payment_request_id: string;
+  approved: boolean;
+  comments?: string;
+  checklist_items?: string[]; // IDs dos items checados
+}
+
+export interface SecondApprovalDTO {
+  payment_request_id: string;
+  approved: boolean;
+  comments?: string;
+}
+

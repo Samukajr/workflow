@@ -1,5 +1,15 @@
 import { pool } from '../config/database';
-import { User, PaymentRequest, PaymentWorkflow, AuditLog } from '../types';
+import { 
+  User, 
+  PaymentRequest, 
+  PaymentWorkflow, 
+  AuditLog,
+  ApprovalRule,
+  PaymentApproval,
+  ComplianceChecklistTemplate,
+  PaymentComplianceChecklist,
+  SupplierBlocklist
+} from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../utils/logger';
 
@@ -165,3 +175,204 @@ export async function getAuditLogsByUser(userId: string, limit: number = 100): P
   ]);
   return result.rows;
 }
+
+// ============= FASE 2: APPROVAL RULES QUERIES =============
+
+export async function getApprovalRuleByAmount(amount: number): Promise<ApprovalRule | null> {
+  const result = await pool.query(
+    'SELECT * FROM approval_rules WHERE $1 BETWEEN min_amount AND max_amount AND is_active = true LIMIT 1',
+    [amount]
+  );
+  return result.rows[0] || null;
+}
+
+export async function getAllApprovalRules(): Promise<ApprovalRule[]> {
+  const result = await pool.query(
+    'SELECT * FROM approval_rules WHERE is_active = true ORDER BY min_amount ASC'
+  );
+  return result.rows;
+}
+
+// ============= FASE 2: PAYMENT APPROVALS QUERIES =============
+
+export async function createPaymentApproval(
+  paymentRequestId: string,
+  approverId: string,
+  approvalOrder: number,
+  decision: 'aprovado' | 'rejeitado',
+  comments?: string
+): Promise<PaymentApproval> {
+  const id = uuidv4();
+  const result = await pool.query(
+    `INSERT INTO payment_approvals 
+    (id, payment_request_id, approver_id, approval_order, decision, comments)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *`,
+    [id, paymentRequestId, approverId, approvalOrder, decision, comments]
+  );
+  return result.rows[0];
+}
+
+export async function getPaymentApprovals(paymentRequestId: string): Promise<PaymentApproval[]> {
+  const result = await pool.query(
+    'SELECT * FROM payment_approvals WHERE payment_request_id = $1 ORDER BY approval_order ASC',
+    [paymentRequestId]
+  );
+  return result.rows;
+}
+
+export async function getApprovalByOrder(paymentRequestId: string, order: number): Promise<PaymentApproval | null> {
+  const result = await pool.query(
+    'SELECT * FROM payment_approvals WHERE payment_request_id = $1 AND approval_order = $2',
+    [paymentRequestId, order]
+  );
+  return result.rows[0] || null;
+}
+
+export async function updatePaymentRequestApprovers(
+  id: string,
+  firstApproverId?: string,
+  secondApproverId?: string,
+  requiresDouble?: boolean
+): Promise<void> {
+  let query = 'UPDATE payment_requests SET updated_at = NOW()';
+  const params: any[] = [];
+  let paramCount = 0;
+
+  if (firstApproverId !== undefined) {
+    paramCount++;
+    query += `, first_approver_id = $${paramCount}`;
+    params.push(firstApproverId);
+  }
+
+  if (secondApproverId !== undefined) {
+    paramCount++;
+    query += `, second_approver_id = $${paramCount}`;
+    params.push(secondApproverId);
+  }
+
+  if (requiresDouble !== undefined) {
+    paramCount++;
+    query += `, requires_double_approval = $${paramCount}`;
+    params.push(requiresDouble);
+  }
+
+  paramCount++;
+  query += ` WHERE id = $${paramCount}`;
+  params.push(id);
+
+  await pool.query(query, params);
+}
+
+export async function markApprovalCompleted(id: string): Promise<void> {
+  await pool.query(
+    'UPDATE payment_requests SET approval_completed_at = NOW() WHERE id = $1',
+    [id]
+  );
+}
+
+// ============= FASE 2: COMPLIANCE CHECKLIST QUERIES =============
+
+export async function getDefaultChecklistTemplate(): Promise<ComplianceChecklistTemplate | null> {
+  const result = await pool.query(
+    'SELECT * FROM compliance_checklist_templates WHERE is_active = true ORDER BY created_at ASC LIMIT 1'
+  );
+  return result.rows[0] || null;
+}
+
+export async function createPaymentChecklist(
+  paymentRequestId: string,
+  templateId: string
+): Promise<PaymentComplianceChecklist> {
+  const id = uuidv4();
+  const result = await pool.query(
+    `INSERT INTO payment_compliance_checklists 
+    (id, payment_request_id, template_id, checked_items)
+    VALUES ($1, $2, $3, '[]'::jsonb)
+    RETURNING *`,
+    [id, paymentRequestId, templateId]
+  );
+  return result.rows[0];
+}
+
+export async function getPaymentChecklist(paymentRequestId: string): Promise<PaymentComplianceChecklist | null> {
+  const result = await pool.query(
+    'SELECT * FROM payment_compliance_checklists WHERE payment_request_id = $1',
+    [paymentRequestId]
+  );
+  return result.rows[0] || null;
+}
+
+export async function updateChecklistItems(
+  paymentRequestId: string,
+  checkedItems: string[],
+  checkedBy: string
+): Promise<void> {
+  await pool.query(
+    `UPDATE payment_compliance_checklists 
+    SET checked_items = $1, checked_by = $2, updated_at = NOW()
+    WHERE payment_request_id = $3`,
+    [JSON.stringify(checkedItems), checkedBy, paymentRequestId]
+  );
+}
+
+export async function completeChecklist(paymentRequestId: string): Promise<void> {
+  await pool.query(
+    `UPDATE payment_compliance_checklists 
+    SET completed_at = NOW() 
+    WHERE payment_request_id = $1`,
+    [paymentRequestId]
+  );
+}
+
+// ============= FASE 2: SUPPLIER BLOCKLIST QUERIES =============
+
+export async function checkSupplierBlocklist(supplierDocument: string): Promise<SupplierBlocklist | null> {
+  const result = await pool.query(
+    'SELECT * FROM supplier_blocklist WHERE supplier_document = $1 AND is_active = true',
+    [supplierDocument]
+  );
+  return result.rows[0] || null;
+}
+
+export async function addToBlocklist(
+  supplierDocument: string,
+  supplierName: string,
+  reason: string,
+  blockedBy: string
+): Promise<SupplierBlocklist> {
+  const id = uuidv4();
+  const result = await pool.query(
+    `INSERT INTO supplier_blocklist 
+    (id, supplier_document, supplier_name, reason, blocked_by)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING *`,
+    [id, supplierDocument, supplierName, reason, blockedBy]
+  );
+  return result.rows[0];
+}
+
+export async function markPaymentAsBlocklisted(
+  id: string,
+  reason: string
+): Promise<void> {
+  await pool.query(
+    'UPDATE payment_requests SET supplier_blocklisted = true, blocklist_reason = $1 WHERE id = $2',
+    [reason, id]
+  );
+}
+
+export async function updatePaymentClosureInfo(
+  id: string,
+  closedBy: string,
+  closeReason?: string,
+  closeEvidenceUrl?: string
+): Promise<void> {
+  await pool.query(
+    `UPDATE payment_requests 
+    SET closed_by = $1, closed_at = NOW(), close_reason = $2, close_evidence_url = $3
+    WHERE id = $4`,
+    [closedBy, closeReason, closeEvidenceUrl, id]
+  );
+}
+

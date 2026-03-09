@@ -2,6 +2,7 @@ import { pool } from '../config/database';
 import logger from '../utils/logger';
 import { createDocumentSignatureTable } from '../services/signatureService';
 import { createPasswordResetTable } from './passwordResetMigrations';
+import { applyPhase2Migrations } from './phase2Migrations';
 
 export async function initializeDatabase(): Promise<void> {
   try {
@@ -12,16 +13,28 @@ export async function initializeDatabase(): Promise<void> {
     await createPasswordResetTable();
 
     await pool.query(`
-      -- Criar enum para departamentos
-      CREATE TYPE department_enum AS ENUM ('financeiro', 'validacao', 'submissao');
+      -- Criar enum para departamentos (IF NOT EXISTS)
+      DO $$ BEGIN
+        CREATE TYPE department_enum AS ENUM ('financeiro', 'validacao', 'submissao');
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
       
-      -- Criar enum para status de requisições
-      CREATE TYPE request_status_enum AS ENUM (
-        'pendente_validacao', 'validado', 'rejeitado', 'em_pagamento', 'pago', 'cancelado'
-      );
+      -- Criar enum para status de requisições (IF NOT EXISTS)
+      DO $$ BEGIN
+        CREATE TYPE request_status_enum AS ENUM (
+          'pendente_validacao', 'validado', 'rejeitado', 'em_pagamento', 'pago', 'cancelado'
+        );
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
 
-      -- Criar enum para tipo de documento
-      CREATE TYPE document_type_enum AS ENUM ('nf', 'boleto');
+      -- Criar enum para tipo de documento (IF NOT EXISTS)
+      DO $$ BEGIN
+        CREATE TYPE document_type_enum AS ENUM ('nf', 'boleto');
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
 
       -- Tabela de Usuários (LGPD)
       CREATE TABLE IF NOT EXISTS users (
@@ -107,6 +120,10 @@ export async function initializeDatabase(): Promise<void> {
     `);
 
     logger.info('Tabelas do banco de dados criadas com sucesso');
+    
+    // Aplicar migrações da Fase 2 (governança corporativa)
+    await applyPhase2Migrations();
+    
   } catch (error) {
     if ((error as any).code === '42P07' || (error as any).message.includes('already exists')) {
       logger.info('Tabelas já existem, saltando criação');

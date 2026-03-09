@@ -21,6 +21,7 @@ const validatePaymentSchema = Joi.object({
   payment_request_id: Joi.string().uuid().required(),
   approved: Joi.boolean().required(),
   comments: Joi.string().optional(),
+  checklist_items: Joi.array().items(Joi.string()).optional(), // FASE 2
 });
 
 const processPaymentSchema = Joi.object({
@@ -32,6 +33,8 @@ const processPaymentSchema = Joi.object({
 
 const closePaymentSchema = Joi.object({
   payment_request_id: Joi.string().uuid().required(),
+  close_reason: Joi.string().optional(), // FASE 2
+  close_evidence_url: Joi.string().uri().optional(), // FASE 2
   comments: Joi.string().optional(),
 });
 
@@ -116,6 +119,7 @@ export const validatePaymentRequest = asyncHandler(async (req: Request, res: Res
       value.approved,
       req.user.id,
       value.comments,
+      value.checklist_items, // FASE 2
     );
 
     res.status(200).json({
@@ -173,6 +177,8 @@ export const closePaymentRequest = asyncHandler(async (req: Request, res: Respon
     const paymentRequest = await paymentService.closePaymentRequest(
       value.payment_request_id,
       req.user.id,
+      value.close_reason, // FASE 2
+      value.close_evidence_url, // FASE 2
       value.comments,
     );
 
@@ -252,3 +258,116 @@ export const getDashboard = asyncHandler(async (req: Request, res: Response) => 
     throw new ErrorHandler(500, err.message);
   }
 });
+
+// ===== FASE 2: NOVOS ENDPOINTS =====
+
+/**
+ * GET /api/payments/checklist/:id
+ * Obter checklist de conformidade de uma requisição
+ */
+export const getChecklist = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ErrorHandler(401, 'Não autenticado');
+  }
+
+  const { id } = req.params;
+
+  try {
+    const checklistData = await paymentService.getPaymentChecklist(id);
+
+    if (!checklistData) {
+      throw new ErrorHandler(404, 'Checklist não encontrado');
+    }
+
+    res.status(200).json({
+      success: true,
+      data: checklistData,
+    });
+  } catch (err: any) {
+    if (err instanceof ErrorHandler) throw err;
+    throw new ErrorHandler(500, err.message);
+  }
+});
+
+/**
+ * GET /api/payments/approval-rules
+ * Listar regras de alçada de aprovação
+ */
+export const getApprovalRules = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ErrorHandler(401, 'Não autenticado');
+  }
+
+  try {
+    const rules = await paymentService.getApprovalRules();
+
+    res.status(200).json({
+      success: true,
+      data: rules,
+    });
+  } catch (err: any) {
+    throw new ErrorHandler(500, err.message);
+  }
+});
+
+/**
+ * GET /api/payments/approvals/:id
+ * Obter histórico de aprovações de uma requisição
+ */
+export const getApprovals = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ErrorHandler(401, 'Não autenticado');
+  }
+
+  const { id } = req.params;
+
+  try {
+    const approvals = await paymentService.getPaymentApprovals(id);
+
+    res.status(200).json({
+      success: true,
+      data: approvals,
+    });
+  } catch (err: any) {
+    throw new ErrorHandler(500, err.message);
+  }
+});
+
+const blocklistSchema = Joi.object({
+  supplier_document: Joi.string().required(),
+  supplier_name: Joi.string().required(),
+  reason: Joi.string().required(),
+});
+
+/**
+ * POST /api/payments/blocklist
+ * Adicionar fornecedor à blocklist
+ */
+export const addToBlocklist = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ErrorHandler(401, 'Não autenticado');
+  }
+
+  const { error, value } = blocklistSchema.validate(req.body);
+
+  if (error) {
+    throw new ErrorHandler(400, error.details[0].message);
+  }
+
+  try {
+    await paymentService.addSupplierToBlocklist(
+      value.supplier_document,
+      value.supplier_name,
+      value.reason,
+      req.user.id,
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Fornecedor adicionado à blocklist com sucesso',
+    });
+  } catch (err: any) {
+    throw new ErrorHandler(400, err.message);
+  }
+});
+

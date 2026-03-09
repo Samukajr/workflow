@@ -229,4 +229,75 @@ router.get('/', authMiddleware, paymentController.listPaymentRequests);
  */
 router.get('/:id', authMiddleware, paymentController.getPaymentRequest);
 
+// ===== FASE 2: NOVAS ROTAS =====
+
+/**
+ * @swagger
+ * /api/payments/checklist/{id}:
+ *   get:
+ *     summary: Obter checklist de conformidade de uma requisição
+ *     tags: [Payments - Fase 2]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.get('/checklist/:id', authMiddleware, paymentController.getChecklist);
+
+/**
+ * @swagger
+ * /api/payments/approval-rules:
+ *   get:
+ *     summary: Listar regras de alçada de aprovação
+ *     tags: [Payments - Fase 2]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/approval-rules', authMiddleware, paymentController.getApprovalRules);
+
+/**
+ * @swagger
+ * /api/payments/approvals/{id}:
+ *   get:
+ *     summary: Obter histórico de aprovações de uma requisição
+ *     tags: [Payments - Fase 2]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.get('/approvals/:id', authMiddleware, paymentController.getApprovals);
+
+/**
+ * @swagger
+ * /api/payments/blocklist:
+ *   post:
+ *     summary: Adicionar fornecedor à blocklist
+ *     tags: [Payments - Fase 2]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               supplier_document:
+ *                 type: string
+ *               supplier_name:
+ *                 type: string
+ *               reason:
+ *                 type: string
+ */
+router.post('/blocklist', authMiddleware, requireDepartment('validacao', 'admin', 'superadmin'), paymentController.addToBlocklist);
+
 export default router;

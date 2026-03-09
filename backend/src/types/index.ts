@@ -182,3 +182,89 @@ export interface SecondApprovalDTO {
   comments?: string;
 }
 
+// ===== FASE 3D: INTEGRAÇÃO BANCÁRIA E ERP =====
+
+// Tipos de bancos e provedores suportados
+export type BankType = 'inter' | 'bankaool' | 'b20' | 'open_banking' | 'manual';
+export type PaymentMethod = 'ted' | 'pix' | 'boleto' | 'transferencia';
+export type WebhookEventType = 'payment_confirmed' | 'payment_rejected' | 'payment_cancelled' | 'payment_pending' | 'reconciliation_required';
+
+// Credenciais de integração bancária
+export interface BankIntegration {
+  id: string;
+  bank_type: BankType;
+  name: string;
+  is_active: boolean;
+  // Credenciais encriptadas
+  api_key_encrypted: string;
+  api_secret_encrypted?: string;
+  client_id?: string;
+  client_secret_encrypted?: string;
+  account_id?: string;
+  // Webhook config
+  webhook_url?: string;
+  webhook_token_encrypted?: string;
+  webhook_secret_encrypted?: string;
+  // Suporte a métodos de pagamento
+  supported_methods: PaymentMethod[];
+  // Metadados da integração
+  last_sync_at?: Date;
+  error_log?: string;
+  created_by: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Eventos de webhook recebidos dos bancos
+export interface WebhookEvent {
+  id: string;
+  bank_integration_id: string;
+  event_type: WebhookEventType;
+  payment_request_id?: string;
+  external_payment_id?: string; // ID do pagamento no banco
+  event_data: Record<string, unknown>;
+  signature_verified: boolean;
+  processed: boolean;
+  processed_at?: Date;
+  error?: string;
+  created_at: Date;
+}
+
+// Reconciliação de pagamentos
+export interface PaymentReconciliation {
+  id: string;
+  payment_request_id: string;
+  bank_integration_id: string;
+  external_payment_id: string;
+  status: 'pendente' | 'confirmado' | 'divergencia' | 'falha';
+  local_amount: number;
+  bank_amount?: number;
+  local_date: Date;
+  bank_date?: Date;
+  bank_status?: string;
+  divergence_reason?: string;
+  resolved_at?: Date;
+  resolved_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// DTO para iniciar pagamento via banco
+export interface InitiateBankPaymentDTO {
+  payment_request_id: string;
+  bank_integration_id: string;
+  payment_method: PaymentMethod;
+  bank_account_number?: string;
+  notes?: string;
+}
+
+// Response de pagamento bancário
+export interface BankPaymentResponse {
+  success: boolean;
+  external_payment_id?: string;
+  status: string;
+  message: string;
+  estimated_date?: Date;
+}
+
+

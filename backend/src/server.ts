@@ -9,6 +9,7 @@ import { testConnection, closePool } from './config/database';
 import { initializeDatabase, seedDatabase } from './database/migrations';
 import { createLGPDTables, processDataDeletionQueue } from './database/lgpdMigrations';
 import { cleanExpiredTokens } from './database/passwordResetMigrations';
+import { runBankingMigrations } from './database/bankingMigrations';
 import { verifyEmailConnection } from './services/emailService';
 import logger from './utils/logger';
 import { errorMiddleware } from './middleware/errorHandler';
@@ -18,6 +19,7 @@ import { requestLoggerMiddleware } from './middleware/requestLogger';
 import authRoutes from './routes/authRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import analyticsRoutes from './routes/analyticsRoutes';
+import bankingRoutes from './routes/bankingRoutes';
 import lgpdRoutes from './routes/lgpdRoutes';
 
 const app: Express = express();
@@ -93,6 +95,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/banking', bankingRoutes);
 app.use('/api/lgpd', lgpdRoutes);
 
 // ============= ERROR HANDLING =============
@@ -121,6 +124,7 @@ async function startServer() {
 
     // Inicializar banco de dados
     await createLGPDTables();
+    await runBankingMigrations();
     // IMPORTANTE: Seed não é mais executado automaticamente!
     // Execute manualmente apenas no setup inicial: npm run seed
 

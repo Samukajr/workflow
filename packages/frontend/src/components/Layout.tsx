@@ -20,14 +20,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     SUBMISSAO: [
       { label: 'Submeter Requisicao', path: '/submit' },
       { label: 'Minhas Requisicoes', path: '/payments' },
+      { label: 'Regras de Alçadas', path: '/alcadas' },
     ],
     VALIDACAO: [
       { label: 'Validar Requisicoes', path: '/validate' },
       { label: 'Todas Requisicoes', path: '/payments' },
+      { label: 'Regras de Alçadas', path: '/alcadas' },
+      { label: 'Fornecedores Bloqueados', path: '/blocklist' },
     ],
     FINANCEIRO: [
       { label: 'Processar Pagamentos', path: '/process' },
       { label: 'Todas Requisicoes', path: '/payments' },
+      { label: 'Regras de Alçadas', path: '/alcadas' },
     ],
     ADMIN: [
       { label: 'Submeter Requisicao', path: '/submit' },
@@ -35,6 +39,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       { label: 'Processar Pagamentos', path: '/process' },
       { label: 'Todas Requisicoes', path: '/payments' },
       { label: 'Relatorios', path: '/relatorios' },
+      { label: 'Regras de Alçadas', path: '/alcadas' },
+      { label: 'Fornecedores Bloqueados', path: '/blocklist' },
     ],
     SUPER_ADMIN: [
       { label: 'Submeter Requisicao', path: '/submit' },
@@ -42,6 +48,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       { label: 'Processar Pagamentos', path: '/process' },
       { label: 'Todas Requisicoes', path: '/payments' },
       { label: 'Relatorios', path: '/relatorios' },
+      { label: 'Regras de Alçadas', path: '/alcadas' },
+      { label: 'Fornecedores Bloqueados', path: '/blocklist' },
     ],
     SUPERADMIN: [
       { label: 'Submeter Requisicao', path: '/submit' },
@@ -49,6 +57,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       { label: 'Processar Pagamentos', path: '/process' },
       { label: 'Todas Requisicoes', path: '/payments' },
       { label: 'Relatorios', path: '/relatorios' },
+      { label: 'Regras de Alçadas', path: '/alcadas' },
+      { label: 'Fornecedores Bloqueados', path: '/blocklist' },
     ],
   }
 

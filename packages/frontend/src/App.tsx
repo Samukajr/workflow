@@ -9,6 +9,8 @@ import ProcessPaymentPage from './pages/ProcessPaymentPage'
 import PaymentListPage from './pages/PaymentListPage'
 import PaymentDetailsPage from './pages/PaymentDetailsPage'
 import RelatoriosPage from './pages/RelatoriosPage'
+import BlocklistPage from './pages/BlocklistPage'
+import ApprovalRulesPage from './pages/ApprovalRulesPage'
 
 export default function App() {
   const { isAuthenticated } = useAuthStore()
@@ -36,6 +38,8 @@ export default function App() {
           <Route path="/payments" element={<PaymentListPage />} />
           <Route path="/payments/:id" element={<PaymentDetailsPage />} />
           <Route path="/relatorios" element={<RelatoriosPage />} />
+          <Route path="/blocklist" element={<BlocklistPage />} />
+          <Route path="/alcadas" element={<ApprovalRulesPage />} />
 
           {/* Rotas legadas para compatibilidade */}
           <Route path="/requisicoes" element={<Navigate to="/payments" replace />} />

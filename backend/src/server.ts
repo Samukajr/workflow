@@ -17,6 +17,7 @@ import { authLimiter, uploadLimiter, generalLimiter } from './middleware/rateLim
 import { requestLoggerMiddleware } from './middleware/requestLogger';
 import authRoutes from './routes/authRoutes';
 import paymentRoutes from './routes/paymentRoutes';
+import analyticsRoutes from './routes/analyticsRoutes';
 import lgpdRoutes from './routes/lgpdRoutes';
 
 const app: Express = express();
@@ -91,6 +92,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/analytics', analyticsRoutes);
 app.use('/api/lgpd', lgpdRoutes);
 
 // ============= ERROR HANDLING =============
@@ -119,7 +121,8 @@ async function startServer() {
 
     // Inicializar banco de dados
     await createLGPDTables();
-    await seedDatabase();
+    // IMPORTANTE: Seed não é mais executado automaticamente!
+    // Execute manualmente apenas no setup inicial: npm run seed
 
     // Verificar conexão com servidor de email (não-bloqueante)
     verifyEmailConnection().catch((err) => {

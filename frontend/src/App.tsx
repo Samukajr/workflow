@@ -10,14 +10,18 @@ import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { SubmitPaymentPage } from '@/pages/SubmitPaymentPage';
+import { ValidatePage } from '@/pages/ValidatePage';
+import { ProcessPaymentPage } from '@/pages/ProcessPaymentPage';
+import { PaymentListPage } from '@/pages/PaymentListPage';
+import { PaymentDetailsPage } from '@/pages/PaymentDetailsPage';
 import { LgpdPage } from '@/pages/LgpdPage';
 
 function App() {
-  const { initializeAuth, isAuthenticated } = useAuth();
+  const { initializeAuth } = useAuth();
 
   React.useEffect(() => {
     initializeAuth();
-  }, []);
+  }, [initializeAuth]);
 
   return (
     <BrowserRouter>
@@ -39,6 +43,24 @@ function App() {
                     <Routes>
                       <Route path="/dashboard" element={<DashboardPage />} />
                       <Route path="/submit" element={<SubmitPaymentPage />} />
+                      <Route 
+                        path="/validate" 
+                        element={
+                          <ProtectedRoute allowedDepartments={['validacao']}>
+                            <ValidatePage />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/process" 
+                        element={
+                          <ProtectedRoute allowedDepartments={['financeiro']}>
+                            <ProcessPaymentPage />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route path="/payments" element={<PaymentListPage />} />
+                      <Route path="/payments/:id" element={<PaymentDetailsPage />} />
                       <Route path="/lgpd" element={<LgpdPage />} />
                       <Route path="*" element={<Navigate to="/dashboard" />} />
                     </Routes>

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -6,14 +6,29 @@ export function Sidebar() {
   const { user } = useAuth();
 
   const navigationLinks = {
-    submissao: [{ label: 'Submeter Requisição', path: '/submit' }],
+    submissao: [
+      { label: '📝 Submeter Requisição', path: '/submit' },
+      { label: '📋 Minhas Requisições', path: '/payments' },
+    ],
     validacao: [
-      { label: 'Validar Requisições', path: '/validate' },
-      { label: 'Minhas Validações', path: '/my-validations' },
+      { label: '✓ Validar Requisições', path: '/validate' },
+      { label: '📋 Todas Requisições', path: '/payments' },
     ],
     financeiro: [
-      { label: 'Processar Pagamentos', path: '/process' },
-      { label: 'Histórico', path: '/history' },
+      { label: '💳 Processar Pagamentos', path: '/process' },
+      { label: '📋 Todas Requisições', path: '/payments' },
+    ],
+    admin: [
+      { label: '📝 Submeter Requisição', path: '/submit' },
+      { label: '✓ Validar Requisições', path: '/validate' },
+      { label: '💳 Processar Pagamentos', path: '/process' },
+      { label: '📋 Todas Requisições', path: '/payments' },
+    ],
+    superadmin: [
+      { label: '📝 Submeter Requisição', path: '/submit' },
+      { label: '✓ Validar Requisições', path: '/validate' },
+      { label: '💳 Processar Pagamentos', path: '/process' },
+      { label: '📋 Todas Requisições', path: '/payments' },
     ],
   };
 

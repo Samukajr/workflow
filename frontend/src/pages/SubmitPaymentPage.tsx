@@ -58,8 +58,9 @@ export function SubmitPaymentPage() {
         toast.success('Requisição submetida com sucesso!');
         navigate('/dashboard');
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao submeter requisição');
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || 'Erro ao submeter requisição');
     } finally {
       setLoading(false);
     }

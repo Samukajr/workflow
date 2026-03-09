@@ -184,4 +184,9 @@ export const paymentService = {
   }) {
     return apiClient.post<{ success: boolean; message: string }>('/payments/blocklist', data);
   },
+
+  // FASE 3C: Analytics
+  async getAnalytics(period: 'today' | 'week' | 'month' | 'quarter' | 'year' = 'month') {
+    return apiClient.get<{ success: boolean; data: any }>(`/analytics/metrics?period=${period}`);
+  },
 };

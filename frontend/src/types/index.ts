@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  department: 'financeiro' | 'validacao' | 'submissao';
+  department: 'financeiro' | 'validacao' | 'submissao' | 'admin' | 'superadmin';
 }
 
 export interface PaymentRequest {

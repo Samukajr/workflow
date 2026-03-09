@@ -1,6 +1,7 @@
 import * as queries from '../database/queries';
 import { PaymentRequest, PaymentWorkflow } from '../types';
 import logger from '../utils/logger';
+import { notifySecondApprovers } from './notificationService';
 
 export async function submitPaymentRequest(
   userId: string,
@@ -132,6 +133,18 @@ export async function validatePaymentRequest(
       );
       
       await queries.createAuditLog(validatedBy, `PRIMEIRA_APROVACAO`, 'payment_request', paymentRequestId);
+
+      // FASE 3B: Notificar validadores elegíveis para segunda aprovação
+      try {
+        const dispatch = await notifySecondApprovers(paymentRequest, validatedBy, comments);
+        await queries.createAuditLog(validatedBy, 'NOTIFICACAO_SEGUNDA_APROVACAO', 'payment_request', paymentRequestId, {
+          attempted: dispatch.attempted,
+          sent: dispatch.sent,
+          failed: dispatch.failed,
+        });
+      } catch (notificationError) {
+        logger.error('Falha ao disparar notificação de segunda aprovação:', notificationError);
+      }
       
       return paymentRequest; // Retorna sem mudar status
     } else {

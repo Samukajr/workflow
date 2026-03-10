@@ -25,6 +25,12 @@ import lgpdRoutes from './routes/lgpdRoutes';
 const app: Express = express();
 const uploadDir = path.isAbsolute(env.UPLOAD_DIR) ? env.UPLOAD_DIR : path.resolve(process.cwd(), env.UPLOAD_DIR);
 
+app.disable('x-powered-by');
+
+if (env.TRUST_PROXY) {
+  app.set('trust proxy', 1);
+}
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -35,7 +41,29 @@ if (!fs.existsSync(uploadDir)) {
 app.use(helmetConfig);
 
 // CORS: Controle de origem
-app.use(cors());
+app.use(
+  cors({
+    credentials: true,
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (env.NODE_ENV !== 'production') {
+        callback(null, true);
+        return;
+      }
+
+      if (env.CORS_ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origem não permitida pelo CORS: ${origin}`));
+    },
+  }),
+);
 
 // Logging: Registrar requisições com IP/User-Agent
 app.use(requestLoggerMiddleware);
@@ -90,6 +118,62 @@ app.get('/health', (req, res) => {
     message: 'API is running',
     timestamp: new Date().toISOString(),
   });
+});
+
+app.get('/health/live', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    status: 'live',
+    uptimeSeconds: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/health/ready', async (_req, res) => {
+  const startedAt = Date.now();
+
+  try {
+    const dbTimeout = new Promise<boolean>((resolve) => {
+      setTimeout(() => resolve(false), env.HEALTHCHECK_DB_TIMEOUT_MS);
+    });
+
+    const dbCheck = testConnection();
+    const dbConnected = await Promise.race([dbCheck, dbTimeout]);
+
+    if (!dbConnected) {
+      res.status(503).json({
+        success: false,
+        status: 'not_ready',
+        checks: {
+          database: 'down',
+        },
+        durationMs: Date.now() - startedAt,
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      status: 'ready',
+      checks: {
+        database: 'up',
+      },
+      durationMs: Date.now() - startedAt,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error({ error }, 'Falha no healthcheck de readiness');
+    res.status(503).json({
+      success: false,
+      status: 'not_ready',
+      checks: {
+        database: 'error',
+      },
+      durationMs: Date.now() - startedAt,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 app.use('/api/auth', authLimiter, authRoutes);
@@ -169,6 +253,14 @@ async function startServer() {
 
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
+    process.on('uncaughtException', (error) => {
+      logger.fatal({ error }, 'uncaughtException capturada');
+      process.exit(1);
+    });
+    process.on('unhandledRejection', (reason) => {
+      logger.fatal({ reason }, 'unhandledRejection capturada');
+      process.exit(1);
+    });
   } catch (error) {
     logger.error('Erro ao iniciar servidor:', error);
     process.exit(1);

@@ -7,6 +7,11 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: parseInt(process.env.PORT || '3000', 10),
   API_URL: process.env.API_URL || 'http://localhost:3000',
+  TRUST_PROXY: process.env.TRUST_PROXY === 'true',
+  CORS_ALLOWED_ORIGINS: (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
 
   // Database
   DATABASE_URL: process.env.DATABASE_URL || '',
@@ -43,6 +48,7 @@ export const env = {
   SESSION_TIMEOUT: parseInt(process.env.SESSION_TIMEOUT || '3600', 10),
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   ENABLE_AUDIT_LOG: process.env.ENABLE_AUDIT_LOG === 'true',
+  HEALTHCHECK_DB_TIMEOUT_MS: parseInt(process.env.HEALTHCHECK_DB_TIMEOUT_MS || '3000', 10),
 };
 
 // Validação de variáveis críticas
@@ -50,5 +56,14 @@ const requiredEnvVars = ['JWT_SECRET'];
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar] && process.env.NODE_ENV === 'production') {
     throw new Error(`Variável de ambiente obrigatória não configurada: ${envVar}`);
+  }
+}
+
+if (process.env.NODE_ENV === 'production') {
+  const jwtSecret = process.env.JWT_SECRET || '';
+  const isDefaultSecret = jwtSecret.includes('seu_jwt_secret_muito_seguro_aqui');
+
+  if (jwtSecret.length < 32 || isDefaultSecret) {
+    throw new Error('JWT_SECRET inseguro para produção. Use um segredo forte com pelo menos 32 caracteres.');
   }
 }

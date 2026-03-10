@@ -33,7 +33,7 @@ Sistema completo para gerenciamento de fluxo de requisições de pagamento com v
 - React 18 com TypeScript
 - Vite para build
 - React Router para navegação
-- Jotai para gerenciamento de estado
+- Zustand para gerenciamento de estado
 - Tailwind CSS para estilos
 - Axios para requisições HTTP
 
@@ -91,7 +91,7 @@ Documentação em: http://localhost:3000/api-docs
 ### Frontend
 
 ```bash
-cd frontend
+cd packages/frontend
 npm install
 npm run dev
 ```

@@ -32,6 +32,9 @@ DATABASE_URL=postgresql://user:password@localhost:5432/workflow_pagamentos
 JWT_SECRET=seu_jwt_secret_muito_seguro_aqui
 NODE_ENV=development
 PORT=3000
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+TRUST_PROXY=false
+HEALTHCHECK_DB_TIMEOUT_MS=3000
 ```
 
 ### Banco de Dados
@@ -83,6 +86,12 @@ npm run test
 - `GET /api/payments/{id}` - Obter détalhes de uma requisição
 - `GET /api/payments/dashboard/stats` - Estatísticas do dashboard
 
+### Saúde da Aplicação (Fase 3F)
+
+- `GET /health` - Health check básico
+- `GET /health/live` - Liveness probe (uptime/processo)
+- `GET /health/ready` - Readiness probe (valida banco com timeout)
+
 ## Autenticação
 
 A API usa JWT para autenticação. Incluir no header:
@@ -108,3 +117,5 @@ A documentação Swagger está disponível em `/api-docs`
 - Log de auditoria para todas as ações
 - Dados criptografados em trânsito (HTTPS em produção)
 - Consentimento LGPD registrado
+- CORS restrito por `CORS_ALLOWED_ORIGINS` em produção
+- Validação de `JWT_SECRET` forte em produção (>= 32 chars)

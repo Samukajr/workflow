@@ -7,20 +7,14 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=packages/backend & npm run dev --workspace=packages/frontend",
-    "build": "npm run build --workspace=packages/backend && npm run build --workspace=packages/frontend",
-    "test": "npm run test --workspace=packages/backend",
-    "lint": "npm run lint --workspace=packages/backend && npm run lint --workspace=packages/frontend",
-    "type-check": "npm run type-check --workspace=packages/backend && npm run type-check --workspace=packages/frontend"
+    "dev": "npm --prefix backend run dev & npm --prefix packages/frontend run dev",
+    "build": "npm --prefix backend run build && npm --prefix packages/frontend run build",
+    "test": "npm --prefix backend run test",
+    "lint": "npm --prefix backend run lint && npm --prefix packages/frontend run lint",
+    "type-check": "npm --prefix backend run typecheck && npm --prefix packages/frontend run type-check"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
-  },
-  "dependencies": {
-    "browserslist": "^4.28.1",
-    "camelcase-css": "^2.0.1",
-    "caniuse-lite": "^1.0.30001777",
-    "nanoid": "^5.1.6"
   }
 }

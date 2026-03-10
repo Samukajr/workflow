@@ -203,15 +203,18 @@ async function startServer() {
     const connected = await testConnection();
 
     if (!connected) {
-      logger.error('Não foi possível conectar ao banco de dados');
-      process.exit(1);
+      logger.error('Não foi possível conectar ao banco de dados. Verifique DATABASE_URL no Render.');
+      logger.error('O servidor vai iniciar assim mesmo, mas todas as rotas de API retornarão erro até o banco estar acessível.');
+      // Não encerra o processo — permite que o Render mantenha o serviço ativo
+      // e o health check /health/ready sinalizará o banco como "down"
+    } else {
+      // Inicializar banco de dados (cria todas as tabelas se não existirem)
+      await initializeDatabase();
+      await createLGPDTables();
+      await runBankingMigrations();
+      // IMPORTANTE: Seed não é mais executado automaticamente!
+      // Execute manualmente apenas no setup inicial: npm run seed
     }
-
-    // Inicializar banco de dados
-    await createLGPDTables();
-    await runBankingMigrations();
-    // IMPORTANTE: Seed não é mais executado automaticamente!
-    // Execute manualmente apenas no setup inicial: npm run seed
 
     // Verificar conexão com servidor de email (não-bloqueante)
     verifyEmailConnection().catch((err) => {

@@ -2,5 +2,18 @@
 	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"installCommand": "npm --prefix packages/frontend install",
 	"buildCommand": "npm --prefix packages/frontend run build",
-	"outputDirectory": "packages/frontend/dist"
+	"outputDirectory": "packages/frontend/dist",
+	"rewrites": [
+		{
+			"source": "/api/(.*)",
+			"destination": "https://workflow-3gbs.onrender.com/api/$1"
+		},
+		{
+			"source": "/(.*)",
+			"destination": "/index.html"
+		}
+	],
+	"env": {
+		"VITE_API_URL": "https://workflow-3gbs.onrender.com/api"
+	}
 }

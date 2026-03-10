@@ -4,6 +4,8 @@ dotenv.config();
 
 const dataGovernanceEnabledRaw = process.env.DATA_GOVERNANCE_ENABLED;
 const dataGovernanceDefault = (process.env.NODE_ENV || 'development') === 'production';
+const resolvedCorsOrigins = process.env.CORS_ALLOWED_ORIGINS || process.env.ALLOWED_ORIGINS || 'http://localhost:5173';
+const resolvedJwtSecret = process.env.JWT_SECRET || process.env.ENCRYPTION_KEY || 'seu_jwt_secret_muito_seguro_aqui';
 
 export const env = {
   // Server
@@ -11,7 +13,7 @@ export const env = {
   PORT: parseInt(process.env.PORT || '3000', 10),
   API_URL: process.env.API_URL || 'http://localhost:3000',
   TRUST_PROXY: process.env.TRUST_PROXY === 'true',
-  CORS_ALLOWED_ORIGINS: (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5173')
+  CORS_ALLOWED_ORIGINS: resolvedCorsOrigins
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
@@ -25,7 +27,7 @@ export const env = {
   DB_PASSWORD: process.env.DB_PASSWORD || 'password',
 
   // JWT
-  JWT_SECRET: process.env.JWT_SECRET || 'seu_jwt_secret_muito_seguro_aqui',
+  JWT_SECRET: resolvedJwtSecret,
   JWT_EXPIRATION: process.env.JWT_EXPIRATION || '24h',
 
   // File Upload
@@ -65,13 +67,15 @@ export const env = {
 // Validação de variáveis críticas
 const requiredEnvVars = ['JWT_SECRET'];
 for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar] && process.env.NODE_ENV === 'production') {
+  const hasJwtSecret = Boolean(process.env.JWT_SECRET || process.env.ENCRYPTION_KEY);
+
+  if (envVar === 'JWT_SECRET' && !hasJwtSecret && process.env.NODE_ENV === 'production') {
     throw new Error(`Variável de ambiente obrigatória não configurada: ${envVar}`);
   }
 }
 
 if (process.env.NODE_ENV === 'production') {
-  const jwtSecret = process.env.JWT_SECRET || '';
+  const jwtSecret = resolvedJwtSecret;
   const isDefaultSecret = jwtSecret.includes('seu_jwt_secret_muito_seguro_aqui');
 
   if (jwtSecret.length < 32 || isDefaultSecret) {

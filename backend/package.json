@@ -14,7 +14,8 @@
     "seed": "ts-node src/scripts/seed.ts",
     "users:list": "ts-node src/scripts/listUsers.ts",
     "users:restore": "ts-node src/scripts/restoreUsers.ts",
-    "departments:update": "ts-node src/scripts/updateDepartments.ts"
+    "departments:update": "ts-node src/scripts/updateDepartments.ts",
+    "fix:login": "ts-node src/scripts/fixLoginIssues.ts"
   },
   "keywords": [
     "workflow",

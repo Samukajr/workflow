@@ -2,6 +2,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const dataGovernanceEnabledRaw = process.env.DATA_GOVERNANCE_ENABLED;
+const dataGovernanceDefault = (process.env.NODE_ENV || 'development') === 'production';
+
 export const env = {
   // Server
   NODE_ENV: process.env.NODE_ENV || 'development',
@@ -49,6 +52,14 @@ export const env = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   ENABLE_AUDIT_LOG: process.env.ENABLE_AUDIT_LOG === 'true',
   HEALTHCHECK_DB_TIMEOUT_MS: parseInt(process.env.HEALTHCHECK_DB_TIMEOUT_MS || '3000', 10),
+
+  // Data Governance & Retention
+  DATA_GOVERNANCE_ENABLED:
+    dataGovernanceEnabledRaw !== undefined ? dataGovernanceEnabledRaw === 'true' : dataGovernanceDefault,
+  DATA_GOVERNANCE_INTERVAL_HOURS: parseInt(process.env.DATA_GOVERNANCE_INTERVAL_HOURS || '24', 10),
+  PAYMENT_DOCUMENT_RETENTION_YEARS: parseInt(process.env.PAYMENT_DOCUMENT_RETENTION_YEARS || '10', 10),
+  DATA_RETENTION_BATCH_SIZE: parseInt(process.env.DATA_RETENTION_BATCH_SIZE || '200', 10),
+  INTEGRITY_SCAN_DAYS: parseInt(process.env.INTEGRITY_SCAN_DAYS || '30', 10),
 };
 
 // Validação de variáveis críticas

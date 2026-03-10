@@ -376,3 +376,90 @@ export async function updatePaymentClosureInfo(
   );
 }
 
+// ============= DATA GOVERNANCE QUERIES =============
+
+export interface RetentionDocumentCandidate {
+  id: string;
+  document_url: string;
+  request_number: string;
+  status: string;
+  created_at: Date;
+}
+
+export interface UploadReference {
+  id: string;
+  request_number: string;
+  document_url: string;
+  created_at: Date;
+}
+
+export async function getRetentionDocumentCandidates(
+  cutoffDate: Date,
+  statuses: string[],
+  limit: number,
+): Promise<RetentionDocumentCandidate[]> {
+  const result = await pool.query(
+    `SELECT id, request_number, document_url, status, created_at
+     FROM payment_requests
+     WHERE created_at < $1
+       AND status = ANY($2)
+       AND document_url LIKE '/uploads/%'
+       AND document_url <> '/uploads/retention-removed'
+     ORDER BY created_at ASC
+     LIMIT $3`,
+    [cutoffDate, statuses, limit],
+  );
+
+  return result.rows;
+}
+
+export async function markDocumentAsRetentionRemoved(paymentRequestId: string): Promise<void> {
+  await pool.query(
+    `UPDATE payment_requests
+     SET document_url = '/uploads/retention-removed',
+         notes = CASE
+           WHEN notes IS NULL OR notes = '' THEN '[RETENTION] Documento removido por política de retenção.'
+           WHEN notes LIKE '%[RETENTION] Documento removido por política de retenção.%' THEN notes
+           ELSE notes || E'\n[RETENTION] Documento removido por política de retenção.'
+         END,
+         updated_at = NOW()
+     WHERE id = $1`,
+    [paymentRequestId],
+  );
+}
+
+export async function getRecentUploadReferences(sinceDate: Date, limit: number): Promise<UploadReference[]> {
+  const result = await pool.query(
+    `SELECT id, request_number, document_url, created_at
+     FROM payment_requests
+     WHERE created_at >= $1
+       AND document_url LIKE '/uploads/%'
+       AND document_url <> '/uploads/retention-removed'
+     ORDER BY created_at DESC
+     LIMIT $2`,
+    [sinceDate, limit],
+  );
+
+  return result.rows;
+}
+
+export async function deleteExpiredPersonalDataExports(limit: number): Promise<number> {
+  const result = await pool.query(
+    `WITH target AS (
+       SELECT id
+       FROM personal_data_exports
+       WHERE expires_at IS NOT NULL
+         AND expires_at < NOW()
+       ORDER BY expires_at ASC
+       LIMIT $1
+     )
+     DELETE FROM personal_data_exports pde
+     USING target
+     WHERE pde.id = target.id
+     RETURNING pde.id`,
+    [limit],
+  );
+
+  return result.rowCount || 0;
+}
+

@@ -119,3 +119,20 @@ A documentação Swagger está disponível em `/api-docs`
 - Consentimento LGPD registrado
 - CORS restrito por `CORS_ALLOWED_ORIGINS` em produção
 - Validação de `JWT_SECRET` forte em produção (>= 32 chars)
+
+## Governança de Dados (Retenção + Integridade)
+
+Em produção, o backend pode executar um ciclo automático de governança para:
+
+- remover arquivos antigos de `uploads` com base na retenção configurada;
+- manter apenas metadados da requisição no banco (`document_url` é marcado como removido por retenção);
+- validar referências recentes de upload e registrar alertas de integridade em `audit_logs`;
+- limpar registros expirados de exportação LGPD (`personal_data_exports`).
+
+Variáveis relacionadas:
+
+- `DATA_GOVERNANCE_ENABLED` (opcional; padrão: `true` em produção)
+- `DATA_GOVERNANCE_INTERVAL_HOURS` (padrão: `24`)
+- `PAYMENT_DOCUMENT_RETENTION_YEARS` (padrão: `10`)
+- `DATA_RETENTION_BATCH_SIZE` (padrão: `200`)
+- `INTEGRITY_SCAN_DAYS` (padrão: `30`)

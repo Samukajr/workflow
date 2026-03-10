@@ -11,6 +11,7 @@ import { createLGPDTables, processDataDeletionQueue } from './database/lgpdMigra
 import { cleanExpiredTokens } from './database/passwordResetMigrations';
 import { runBankingMigrations } from './database/bankingMigrations';
 import { verifyEmailConnection } from './services/emailService';
+import { runDataGovernanceCycle } from './services/dataGovernanceService';
 import logger from './utils/logger';
 import { errorMiddleware } from './middleware/errorHandler';
 import { helmetConfig } from './middleware/helmetConfig';
@@ -217,12 +218,19 @@ async function startServer() {
       logger.warn('⚠️ Servidor de email não configurado. Recuperação de senha indisponível.');
     });
 
-    // Agendar limpeza de dados deletados (a cada 24 horas)
+    // Executar uma vez no boot para reduzir acúmulos em ambientes de produção
+    if (env.DATA_GOVERNANCE_ENABLED) {
+      runDataGovernanceCycle().catch((err) => logger.error('Erro no ciclo inicial de governança:', err));
+    }
+
+    // Agendar limpeza e governança de dados
     if (env.NODE_ENV === 'production') {
+      const intervalMs = env.DATA_GOVERNANCE_INTERVAL_HOURS * 60 * 60 * 1000;
       setInterval(() => {
         processDataDeletionQueue().catch((err) => logger.error('Erro no cleanup LGPD:', err));
         cleanExpiredTokens().catch((err) => logger.error('Erro ao limpar tokens:', err));
-      }, 24 * 60 * 60 * 1000);
+        runDataGovernanceCycle().catch((err) => logger.error('Erro na governança de dados:', err));
+      }, intervalMs);
     }
 
     // Iniciar servidor

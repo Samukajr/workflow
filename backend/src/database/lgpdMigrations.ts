@@ -19,7 +19,7 @@ export async function createLGPDTables(): Promise<void> {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         
-        CONSTRAINT unique_active_consent UNIQUE (user_id, consent_type) WHERE revoked_at IS NULL
+        CONSTRAINT unique_active_consent UNIQUE (user_id, consent_type)
       );
 
       CREATE INDEX IF NOT EXISTS idx_lgpd_consents_user_id ON lgpd_consents(user_id);

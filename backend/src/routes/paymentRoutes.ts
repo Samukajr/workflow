@@ -190,6 +190,35 @@ router.get('/dashboard/stats', authMiddleware, paymentController.getDashboard);
 
 /**
  * @swagger
+ * /api/payments/reports/export:
+ *   get:
+ *     summary: Exportar relatórios em PDF ou Excel (somente superadmin)
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [payments, validations, audit]
+ *       - in: query
+ *         name: format
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [excel, pdf]
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: number
+ */
+router.get('/reports/export', authMiddleware, paymentController.exportReport);
+
+/**
+ * @swagger
  * /api/payments:
  *   get:
  *     summary: Listar requisições de pagamento

@@ -105,6 +105,7 @@ function ForgotPasswordPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
               disabled={isLoading}
+              autoComplete="email"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               required
             />

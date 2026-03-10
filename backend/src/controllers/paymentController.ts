@@ -7,6 +7,8 @@ import { asyncHandler, ErrorHandler } from '../middleware/errorHandler';
 import Joi from 'joi';
 import { env } from '../config/environment';
 import { generateDocumentHash, registerDocumentSignature } from '../services/signatureService';
+import logger from '../utils/logger';
+import { buildExcelReport, buildPdfReport, getReportData, ReportType } from '../services/reportService';
 
 const submitPaymentSchema = Joi.object({
   document_type: Joi.string().valid('nf', 'boleto').required(),
@@ -36,6 +38,12 @@ const closePaymentSchema = Joi.object({
   close_reason: Joi.string().optional(), // FASE 2
   close_evidence_url: Joi.string().uri().optional(), // FASE 2
   comments: Joi.string().optional(),
+});
+
+const exportReportSchema = Joi.object({
+  type: Joi.string().valid('payments', 'validations', 'audit').required(),
+  format: Joi.string().valid('excel', 'pdf').required(),
+  limit: Joi.number().integer().min(1).max(5000).default(1000),
 });
 
 export const submitPaymentRequest = asyncHandler(async (req: Request, res: Response) => {
@@ -369,5 +377,72 @@ export const addToBlocklist = asyncHandler(async (req: Request, res: Response) =
   } catch (err: any) {
     throw new ErrorHandler(400, err.message);
   }
+});
+
+/**
+ * GET /api/payments/reports/export
+ * Exportar relatórios em PDF ou Excel (somente superadmin)
+ */
+export const exportReport = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ErrorHandler(401, 'Não autenticado');
+  }
+
+  if (req.user.department !== 'superadmin') {
+    throw new ErrorHandler(403, 'Apenas superadmin pode exportar relatórios');
+  }
+
+  const { error, value } = exportReportSchema.validate(req.query);
+
+  if (error) {
+    throw new ErrorHandler(400, error.details[0].message);
+  }
+
+  const reportType = value.type as ReportType;
+  const reportFormat = value.format as 'excel' | 'pdf';
+  const limit = Number(value.limit);
+
+  const rows = await getReportData(reportType, limit);
+  const reportDate = new Date().toISOString().slice(0, 10);
+
+  if (reportFormat === 'excel') {
+    const buffer = await buildExcelReport(reportType, rows);
+    const fileName = `relatorio-${reportType}-${reportDate}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.status(200).send(buffer);
+  } else {
+    const buffer = await buildPdfReport(reportType, rows);
+    const fileName = `relatorio-${reportType}-${reportDate}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.status(200).send(buffer);
+  }
+
+  await queries.createAuditLog(
+    req.user.id,
+    'EXPORT',
+    'report',
+    reportType,
+    {
+      format: reportFormat,
+      totalRows: rows.length,
+      limit,
+    },
+    req.ip,
+    req.get('user-agent') || 'unknown',
+  );
+
+  logger.info(
+    {
+      userId: req.user.id,
+      reportType,
+      reportFormat,
+      totalRows: rows.length,
+    },
+    'Relatório exportado com sucesso',
+  );
 });
 

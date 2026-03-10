@@ -186,6 +186,7 @@ function ResetPasswordPage() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
                   disabled={isLoading}
+                  autoComplete="new-password"
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                   required
                   minLength={6}
@@ -213,6 +214,7 @@ function ResetPasswordPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Digite a mesma senha"
                   disabled={isLoading}
+                  autoComplete="new-password"
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                   required
                 />

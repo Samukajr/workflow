@@ -88,6 +88,18 @@ class ApiClient {
       throw error;
     }
   }
+
+  async download(url: string, params?: Record<string, string | number>) {
+    const response = await this.client.get(url, {
+      params,
+      responseType: 'blob',
+    });
+
+    return {
+      data: response.data,
+      headers: response.headers,
+    };
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -1,6 +1,39 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const DEFAULT_API_BASE_URL = 'http://localhost:3000/api';
+
+function normalizeApiBaseUrl(rawUrl?: string): string {
+  const candidate = (rawUrl || DEFAULT_API_BASE_URL).trim();
+
+  try {
+    const parsed = new URL(candidate);
+    const path = parsed.pathname.replace(/\/+$/, '');
+
+    if (!path || path === '/') {
+      parsed.pathname = '/api';
+    } else if (path === '/api' || path.startsWith('/api/')) {
+      parsed.pathname = path;
+    } else {
+      parsed.pathname = path;
+    }
+
+    return parsed.toString().replace(/\/+$/, '');
+  } catch {
+    const sanitized = candidate.replace(/\/+$/, '');
+
+    if (!sanitized) {
+      return DEFAULT_API_BASE_URL;
+    }
+
+    if (sanitized.endsWith('/api')) {
+      return sanitized;
+    }
+
+    return `${sanitized}/api`;
+  }
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
 
 class ApiClient {
   private client: AxiosInstance;

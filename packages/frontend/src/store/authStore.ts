@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { apiClient } from '@/services/api'
 
 interface User {
   id: string
@@ -25,21 +26,28 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   login: async (email: string, password: string) => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
+      const data = (await apiClient.post('/auth/login', { email, password })) as any
+      const token = data?.token ?? data?.data?.token
+      const rawUser = data?.user ?? data?.data?.user
 
-      if (!response.ok) throw new Error('Login failed')
+      if (!token || !rawUser) {
+        throw new Error('Login failed')
+      }
 
-      const data = await response.json()
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('user', JSON.stringify(data.user))
+      const normalizedUser: User = {
+        id: String(rawUser.id ?? ''),
+        nome: rawUser.nome ?? rawUser.name ?? '',
+        email: rawUser.email ?? '',
+        departamento: rawUser.departamento ?? rawUser.department ?? '',
+        tipo: rawUser.tipo ?? rawUser.role ?? rawUser.departamento ?? rawUser.department ?? '',
+      }
+
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(normalizedUser))
 
       set({
-        token: data.token,
-        user: data.user,
+        token,
+        user: normalizedUser,
         isAuthenticated: true,
       })
     } catch (error) {

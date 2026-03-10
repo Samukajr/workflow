@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Lock, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { apiClient } from '@/services/api';
 
-export function ResetPasswordPage() {
+function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
@@ -260,3 +260,5 @@ export function ResetPasswordPage() {
     </div>
   );
 }
+
+export default ResetPasswordPage;

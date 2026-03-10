@@ -53,8 +53,9 @@ class ApiClient {
     }
   }
 
-  async get<T>(url: string) {
-    return this.request<T>('GET', url);
+  async get<T>(url: string, config?: unknown) {
+    const response = await this.client.get<T>(url, config as any);
+    return response.data;
   }
 
   async post<T>(url: string, data?: unknown) {
@@ -65,8 +66,9 @@ class ApiClient {
     return this.request<T>('PUT', url, data);
   }
 
-  async delete<T>(url: string) {
-    return this.request<T>('DELETE', url);
+  async delete<T>(url: string, config?: unknown) {
+    const response = await this.client.delete<T>(url, config as any);
+    return response.data;
   }
 
   async uploadFile<T>(url: string, formData: FormData) {

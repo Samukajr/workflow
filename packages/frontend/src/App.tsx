@@ -13,6 +13,9 @@ import BlocklistPage from './pages/BlocklistPage'
 import ApprovalRulesPage from './pages/ApprovalRulesPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import BankingIntegrationPage from './pages/BankingIntegrationPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import LgpdPage from './pages/LgpdPage'
 
 export default function App() {
   const { isAuthenticated } = useAuthStore()
@@ -22,6 +25,8 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
@@ -44,6 +49,7 @@ export default function App() {
           <Route path="/banking" element={<BankingIntegrationPage />} />
           <Route path="/blocklist" element={<BlocklistPage />} />
           <Route path="/alcadas" element={<ApprovalRulesPage />} />
+          <Route path="/lgpd" element={<LgpdPage />} />
 
           {/* Rotas legadas para compatibilidade */}
           <Route path="/requisicoes" element={<Navigate to="/payments" replace />} />

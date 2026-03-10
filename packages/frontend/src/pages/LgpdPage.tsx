@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, CheckCircle, AlertCircle, Download, Trash2, Eye } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import { apiClient } from '@/services/api';
 
 interface Consent {
@@ -36,8 +35,7 @@ const CONSENT_TYPES = [
   { id: 'third_party', label: 'Terceiros', description: 'Compartilhar dados com parceiros' },
 ];
 
-export function LgpdPage() {
-  const { user } = useAuth();
+function LgpdPage() {
   const [activeTab, setActiveTab] = useState<'consents' | 'deletion' | 'export' | 'audit'>('consents');
   const [consents, setConsents] = useState<Consent[]>([]);
   const [deletionRequests, setDeletionRequests] = useState<DeletionRequest[]>([]);
@@ -69,7 +67,7 @@ export function LgpdPage() {
         setDeletionRequests([
           {
             id: '1',
-            userId: user?.id || '',
+            userId: '',
             reason: 'Não desejo mais usar a plataforma',
             requestedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
             status: 'approved',
@@ -140,10 +138,10 @@ export function LgpdPage() {
 
   const handleExportData = async () => {
     try {
-      const response = await apiClient.get('/lgpd/data-export', {
+      const response = await apiClient.get<Blob>('/lgpd/data-export', {
         responseType: 'blob',
       });
-      const url = window.URL.createObjectURL(new Blob([response]));
+      const url = window.URL.createObjectURL(response as Blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `personal-data-${new Date().toISOString().split('T')[0]}.json`);
@@ -402,3 +400,5 @@ export function LgpdPage() {
     </div>
   );
 }
+
+export default LgpdPage;

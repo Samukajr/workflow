@@ -48,7 +48,7 @@ export default function AnalyticsPage() {
       setLoading(true)
       setError('')
       const response = await paymentService.getAnalytics(period)
-      setAnalytics(response)
+      setAnalytics(response as any)
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar analytics')
     } finally {
@@ -278,7 +278,7 @@ export default function AnalyticsPage() {
 
         {/* Transações de Alto Valor */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold text-slate-900 mb-4">Transações de Alto Valor (>50k)</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-4">Transações de Alto Valor (&gt;50k)</h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-slate-600">Total</span>

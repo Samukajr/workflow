@@ -92,7 +92,7 @@ export class InterBankProvider extends BankProvider {
     }
   }
 
-  validateWebhookSignature(payload: string, signature: string): boolean {
+  validateWebhookSignature(_payload: string, _signature: string): boolean {
     // Implementar verificação de assinatura do Inter
     return true;
   }
@@ -148,7 +148,7 @@ export class BankaoolProvider extends BankProvider {
     }
   }
 
-  validateWebhookSignature(payload: string, signature: string): boolean {
+  validateWebhookSignature(_payload: string, _signature: string): boolean {
     // Implementar verificação de assinatura do Bankaool
     return true;
   }
@@ -178,7 +178,7 @@ export class ManualPaymentProvider extends BankProvider {
     supplierName: string,
     _supplierDocument: string,
     _dueDate: Date,
-    method: PaymentMethod,
+    _method: PaymentMethod,
   ): Promise<BankPaymentResponse> {
     try {
       logger.info(

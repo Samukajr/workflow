@@ -30,8 +30,8 @@ export async function createPasswordResetTable(): Promise<void> {
     `);
 
     logger.info('✅ Tabela password_reset_tokens criada com sucesso');
-  } catch (error: any) {
-    if (error.code === '42P07') {
+  } catch (error: unknown) {
+    if ((error as { code?: string }).code === '42P07') {
       logger.info('Tabela password_reset_tokens já existe');
     } else {
       logger.error('Erro ao criar tabela password_reset_tokens:', error);

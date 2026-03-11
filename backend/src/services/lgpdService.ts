@@ -151,7 +151,7 @@ export async function exportPersonalData(userId: string): Promise<string> {
 /**
  * Obter histórico de processamento de dados (auditoria LGPD)
  */
-export async function getPersonalDataAudit(userId: string): Promise<any[]> {
+export async function getPersonalDataAudit(userId: string): Promise<Record<string, unknown>[]> {
   const result = await pool.query(
     `SELECT action, data_type, old_value, new_value, reason, performed_by, created_at
      FROM personal_data_audit

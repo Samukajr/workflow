@@ -218,7 +218,7 @@ export async function processPayment(
   processedBy: string,
   transactionId: string,
   paymentDate: Date,
-  notes?: string,
+  _notes?: string,
 ): Promise<PaymentRequest> {
   const paymentRequest = await queries.getPaymentRequestById(paymentRequestId);
 
@@ -310,7 +310,10 @@ export async function closePaymentRequest(
 
   // Buscar e retornar a requisição atualizada
   const updatedRequest = await queries.getPaymentRequestById(paymentRequestId);
-  return updatedRequest!;
+  if (!updatedRequest) {
+    throw new Error('Erro ao recuperar requisição atualizada');
+  }
+  return updatedRequest;
 }
 
 export async function getPaymentRequestDetails(id: string): Promise<{ request: PaymentRequest; workflow: PaymentWorkflow[] } | null> {
@@ -325,7 +328,7 @@ export async function getPaymentRequestDetails(id: string): Promise<{ request: P
   return { request, workflow };
 }
 
-export async function getDashboardStats(currentUserDepartment: string): Promise<any> {
+export async function getDashboardStats(currentUserDepartment: string): Promise<Record<string, number | string>> {
   const pendingValidation = await queries.getPaymentRequestsCountByStatus('pendente_validacao');
   const validated = await queries.getPaymentRequestsCountByStatus('validado');
   const paid = await queries.getPaymentRequestsCountByStatus('pago');
@@ -349,13 +352,13 @@ export async function addSupplierToBlocklist(
   blockedBy: string,
 ): Promise<void> {
   await queries.addToBlocklist(supplierDocument, supplierName, reason, blockedBy);
-  
+
   await queries.createAuditLog(blockedBy, 'FORNECEDOR_BLOQUEADO', 'supplier_blocklist', null, {
     supplier_document: supplierDocument,
     supplier_name: supplierName,
     reason,
   });
-  
+
   logger.info(`Fornecedor ${supplierName} (${supplierDocument}) adicionado à blocklist por ${blockedBy}`);
 }
 
@@ -375,7 +378,7 @@ export async function getPaymentChecklist(paymentRequestId: string) {
 }
 
 export async function getApprovalRules() {
-  return await queries.getAllApprovalRules();
+    return await queries.getAllApprovalRules();
 }
 
 export async function getPaymentApprovals(paymentRequestId: string) {

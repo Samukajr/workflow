@@ -14,7 +14,7 @@ export function requestLoggerMiddleware(req: Request, res: Response, next: NextF
   // Interceptar o envio da resposta
   const originalSend = res.send;
 
-  res.send = function (data: any) {
+  res.send = function (data: unknown) {
     const duration = Date.now() - startTime;
     const statusCode = res.statusCode;
 

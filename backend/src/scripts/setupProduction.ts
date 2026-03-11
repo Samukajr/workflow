@@ -106,8 +106,8 @@ async function setup() {
           [user.email, user.name, user.department, demoPassword]
         );
         console.log(`   ✅ ${user.email} (${user.department})`);
-      } catch (err: any) {
-        console.error(`   ❌ Erro em ${user.email}: ${err.message}`);
+      } catch (err: unknown) {
+        console.error(`   ❌ Erro em ${user.email}: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 
@@ -123,8 +123,8 @@ async function setup() {
     console.log('   submissao@empresa.com   → Submissão');
     console.log('\n⚠️  IMPORTANTE: Altere as senhas após o primeiro acesso!\n');
 
-  } catch (error: any) {
-    console.error('\n❌ ERRO NO SETUP:', error.message);
+  } catch (error: unknown) {
+    console.error('\n❌ ERRO NO SETUP:', error instanceof Error ? error.message : String(error));
     console.error(error);
     process.exit(1);
   } finally {

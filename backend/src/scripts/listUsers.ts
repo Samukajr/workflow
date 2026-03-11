@@ -1,5 +1,4 @@
 import { pool } from '../config/database';
-import logger from '../utils/logger';
 
 async function listAllUsers() {
   try {
@@ -41,8 +40,8 @@ async function listAllUsers() {
     console.log('===========================================\n');
 
     await pool.end();
-  } catch (error: any) {
-    console.error('❌ Erro ao listar usuários:', error.message);
+  } catch (error: unknown) {
+    console.error('❌ Erro ao listar usuários:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

@@ -61,8 +61,8 @@ export const createIntegration = asyncHandler(async (req: Request, res: Response
       message: 'Integração bancária criada com sucesso',
       data: integration,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -82,8 +82,8 @@ export const listIntegrations = asyncHandler(async (req: Request, res: Response)
       success: true,
       data: integrations,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -109,9 +109,9 @@ export const getIntegration = asyncHandler(async (req: Request, res: Response) =
       success: true,
       data: integration,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof ErrorHandler) throw err;
-    throw new ErrorHandler(500, err.message);
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -136,8 +136,8 @@ export const testConnection = asyncHandler(async (req: Request, res: Response) =
         : 'Falha ao conectar com banco',
       data: { connected },
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -168,8 +168,8 @@ export const initiatePayment = asyncHandler(async (req: Request, res: Response) 
       message: response.message,
       data: response,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(400, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(400, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -199,13 +199,13 @@ export const receiveWebhook = asyncHandler(async (req: Request, res: Response) =
       success: true,
       message: 'Webhook recebido e processado',
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     logger.error('❌ Erro ao processar webhook:', err);
     // Ainda retornar 200 para não gerar retentativas
     res.status(200).json({
       success: false,
       message: 'Webhook recebido mas com erro interno',
-      error: err.message,
+      error: err instanceof Error ? err.message : String(err),
     });
   }
 });
@@ -234,9 +234,9 @@ export const getReconciliation = asyncHandler(async (req: Request, res: Response
       success: true,
       data: reconciliation,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof ErrorHandler) throw err;
-    throw new ErrorHandler(500, err.message);
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -260,8 +260,8 @@ export const getPendingReconciliations = asyncHandler(
           reconciliations,
         },
       });
-    } catch (err: any) {
-      throw new ErrorHandler(500, err.message);
+    } catch (err: unknown) {
+      throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
     }
   },
 );

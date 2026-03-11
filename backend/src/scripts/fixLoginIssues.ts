@@ -1,6 +1,7 @@
 import { pool } from '../config/database';
 import bcrypt from 'bcryptjs';
-import logger from '../utils/logger';
+
+type UserRow = { email: string; name: string; department: string; is_active: boolean };
 
 async function fixLoginIssues() {
   try {
@@ -20,7 +21,7 @@ async function fixLoginIssues() {
       console.log('❌ PROBLEMA: Nenhum usuário encontrado no banco de dados!\n');
     } else {
       console.log(`✅ Encontrados ${existingUsers.length} usuário(s):\n`);
-      existingUsers.forEach((user: any) => {
+      existingUsers.forEach((user: UserRow) => {
         const status = user.is_active ? '✅ Ativo' : '❌ Inativo';
         console.log(`   • ${user.email} (${user.department}) - ${status}`);
       });
@@ -32,7 +33,7 @@ async function fixLoginIssues() {
     // ==========================================
     console.log('🔍 PASSO 2: Verificando superadministrador...\n');
     
-    const superadminCheck = existingUsers.find((u: any) => u.email === 'superadmin@empresa.com');
+    const superadminCheck = existingUsers.find((u: UserRow) => u.email === 'superadmin@empresa.com');
     
     if (superadminCheck) {
       console.log('✅ Superadmin já existe!\n');
@@ -62,8 +63,8 @@ async function fixLoginIssues() {
         );
         
         console.log('✅ Superadmin criado com sucesso!\n');
-      } catch (error: any) {
-        if (error.message.includes('violates enum') || error.message.includes('invalid enum')) {
+      } catch (error: unknown) {
+        if (error instanceof Error && (error.message.includes('violates enum') || error.message.includes('invalid enum'))) {
           console.log('❌ PROBLEMA: O enum de departamentos não tem "superadmin"!\n');
           console.log('🔧 Adicionando departamentos ao enum...\n');
           
@@ -84,8 +85,8 @@ async function fixLoginIssues() {
             );
             
             console.log('✅ Superadmin criado com sucesso após atualizar enums!\n');
-          } catch (updateError: any) {
-            console.error('❌ Erro ao atualizar enum:', updateError.message);
+          } catch (updateError: unknown) {
+            console.error('❌ Erro ao atualizar enum:', updateError instanceof Error ? updateError.message : String(updateError));
             console.log('\n💡 SOLUÇÃO MANUAL: Execute em um terminal PostgreSQL:\n');
             console.log('   ALTER TYPE department_enum ADD VALUE \'admin\';');
             console.log('   ALTER TYPE department_enum ADD VALUE \'superadmin\';\n');
@@ -116,7 +117,7 @@ async function fixLoginIssues() {
     let skipped = 0;
 
     for (const user of usersToCreate) {
-      const exists = existingUsers.some((u: any) => u.email === user.email);
+      const exists = existingUsers.some((u: UserRow) => u.email === user.email);
       
       if (exists) {
         console.log(`⏭️  ${user.email} - ja existe`);
@@ -129,11 +130,11 @@ async function fixLoginIssues() {
           );
           console.log(`✅ ${user.email} - criado`);
           created++;
-        } catch (error: any) {
-          if (error.message.includes('violates enum')) {
+        } catch (error: unknown) {
+          if (error instanceof Error && error.message.includes('violates enum')) {
             console.log(`❌ ${user.email} - erro: departamento '${user.department}' não existe no enum`);
           } else {
-            console.log(`❌ ${user.email} - erro: ${error.message}`);
+            console.log(`❌ ${user.email} - erro: ${error instanceof Error ? error.message : String(error)}`);
           }
         }
       }
@@ -181,8 +182,8 @@ async function fixLoginIssues() {
     console.log('  3. Use as credenciais acima\n');
 
     await pool.end();
-  } catch (error: any) {
-    console.error('\n❌ Erro durante o processo de reparo:', error.message);
+  } catch (error: unknown) {
+    console.error('\n❌ Erro durante o processo de reparo:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

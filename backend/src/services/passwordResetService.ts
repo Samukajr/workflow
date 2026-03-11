@@ -166,7 +166,11 @@ export async function resetPassword({
       return { success: false, message: validation.message || 'Token inválido' };
     }
 
-    const userId = validation.userId!;
+    if (!validation.userId) {
+      return { success: false, message: 'Token inválido' };
+    }
+
+    const userId = validation.userId;
 
     // 2. Hash da nova senha
     const passwordHash = await hashPassword(newPassword);

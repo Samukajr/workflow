@@ -3,6 +3,7 @@ import logger from '../utils/logger';
 import { createDocumentSignatureTable } from '../services/signatureService';
 import { createPasswordResetTable } from './passwordResetMigrations';
 import { applyPhase2Migrations } from './phase2Migrations';
+import bcrypt from 'bcryptjs';
 
 export async function initializeDatabase(): Promise<void> {
   try {
@@ -147,8 +148,6 @@ export async function seedDatabase(): Promise<void> {
       return;
     }
 
-    // Importar bcryptjs para senha demo
-    const bcrypt = require('bcryptjs');
     const demoPassword = await bcrypt.hash('DemoPass@123', 10);
 
     await pool.query(`

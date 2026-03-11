@@ -11,7 +11,6 @@ import {
   SupplierBlocklist
 } from '../types';
 import { v4 as uuidv4 } from 'uuid';
-import logger from '../utils/logger';
 
 // ============= USERS QUERIES =============
 
@@ -74,7 +73,7 @@ export async function getPaymentRequestById(id: string): Promise<PaymentRequest 
   return result.rows[0] || null;
 }
 
-export async function getPaymentRequestsByStatus(status: string, limit: number = 50, offset: number = 0): Promise<PaymentRequest[]> {
+export async function getPaymentRequestsByStatus(status: string, limit = 50, offset = 0): Promise<PaymentRequest[]> {
   const result = await pool.query(
     'SELECT * FROM payment_requests WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3',
     [status, limit, offset],
@@ -87,7 +86,7 @@ export async function getPaymentRequestsByUser(userId: string): Promise<PaymentR
   return result.rows;
 }
 
-export async function getAllPaymentRequests(limit: number = 50, offset: number = 0): Promise<PaymentRequest[]> {
+export async function getAllPaymentRequests(limit = 50, offset = 0): Promise<PaymentRequest[]> {
   const result = await pool.query(
     'SELECT * FROM payment_requests ORDER BY created_at DESC LIMIT $1 OFFSET $2',
     [limit, offset],
@@ -163,12 +162,12 @@ export async function createAuditLog(
   return result.rows[0];
 }
 
-export async function getAuditLogs(limit: number = 100, offset: number = 0): Promise<AuditLog[]> {
+export async function getAuditLogs(limit = 100, offset = 0): Promise<AuditLog[]> {
   const result = await pool.query('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT $1 OFFSET $2', [limit, offset]);
   return result.rows;
 }
 
-export async function getAuditLogsByUser(userId: string, limit: number = 100): Promise<AuditLog[]> {
+export async function getAuditLogsByUser(userId: string, limit = 100): Promise<AuditLog[]> {
   const result = await pool.query('SELECT * FROM audit_logs WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2', [
     userId,
     limit,

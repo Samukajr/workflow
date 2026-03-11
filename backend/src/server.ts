@@ -6,7 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { env } from './config/environment';
 import { testConnection, closePool } from './config/database';
-import { initializeDatabase, seedDatabase } from './database/migrations';
+import { initializeDatabase } from './database/migrations';
 import { createLGPDTables, processDataDeletionQueue } from './database/lgpdMigrations';
 import { cleanExpiredTokens } from './database/passwordResetMigrations';
 import { runBankingMigrations } from './database/bankingMigrations';
@@ -15,7 +15,7 @@ import { runDataGovernanceCycle } from './services/dataGovernanceService';
 import logger from './utils/logger';
 import { errorMiddleware } from './middleware/errorHandler';
 import { helmetConfig } from './middleware/helmetConfig';
-import { authLimiter, uploadLimiter, generalLimiter } from './middleware/rateLimit';
+import { authLimiter, generalLimiter } from './middleware/rateLimit';
 import { requestLoggerMiddleware } from './middleware/requestLogger';
 import authRoutes from './routes/authRoutes';
 import paymentRoutes from './routes/paymentRoutes';
@@ -217,7 +217,7 @@ async function startServer() {
     }
 
     // Verificar conexão com servidor de email (não-bloqueante)
-    verifyEmailConnection().catch((err) => {
+    verifyEmailConnection().catch((_err) => {
       logger.warn('⚠️ Servidor de email não configurado. Recuperação de senha indisponível.');
     });
 

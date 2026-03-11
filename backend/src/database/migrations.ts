@@ -56,6 +56,34 @@ export async function initializeDatabase(): Promise<void> {
       -- FASE 3B: Coluna opcional para contato SMS
       ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(30);
 
+      -- Cadastro mestre de fornecedores
+      CREATE TABLE IF NOT EXISTS suppliers (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        supplier_name VARCHAR(255) NOT NULL,
+        trade_name VARCHAR(255),
+        supplier_type VARCHAR(120),
+        document_raw VARCHAR(50) NOT NULL,
+        document_normalized VARCHAR(20) NOT NULL UNIQUE,
+        contact_name VARCHAR(255),
+        contact_phone VARCHAR(120),
+        company VARCHAR(255),
+        city_state VARCHAR(255),
+        status VARCHAR(50),
+        bank_name VARCHAR(100),
+        bank_branch VARCHAR(50),
+        bank_account VARCHAR(100),
+        source_file_name VARCHAR(255),
+        is_active BOOLEAN DEFAULT TRUE,
+        created_by UUID REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(supplier_name);
+      CREATE INDEX IF NOT EXISTS idx_suppliers_trade_name ON suppliers(trade_name);
+      CREATE INDEX IF NOT EXISTS idx_suppliers_company ON suppliers(company);
+      CREATE INDEX IF NOT EXISTS idx_suppliers_active ON suppliers(is_active);
+
       -- Tabela de Requisições de Pagamento
       CREATE TABLE IF NOT EXISTS payment_requests (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

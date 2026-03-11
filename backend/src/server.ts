@@ -10,6 +10,7 @@ import { initializeDatabase } from './database/migrations';
 import { createLGPDTables, processDataDeletionQueue } from './database/lgpdMigrations';
 import { cleanExpiredTokens } from './database/passwordResetMigrations';
 import { runBankingMigrations } from './database/bankingMigrations';
+import { applyPhase2Migrations } from './database/phase2Migrations';
 import { verifyEmailConnection } from './services/emailService';
 import { runDataGovernanceCycle } from './services/dataGovernanceService';
 import logger from './utils/logger';
@@ -212,6 +213,7 @@ async function startServer() {
       await initializeDatabase();
       await createLGPDTables();
       await runBankingMigrations();
+      await applyPhase2Migrations();
       // IMPORTANTE: Seed não é mais executado automaticamente!
       // Execute manualmente apenas no setup inicial: npm run seed
     }

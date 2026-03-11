@@ -79,9 +79,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="market-bg min-h-screen">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-slate-200">
+      <header className="bg-white/95 shadow-sm border-b border-slate-200 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-3">
           <div className="flex items-center space-x-3">
             <h1 className="text-2xl font-bold text-indigo-700">Workflow Pagamentos</h1>
@@ -102,8 +102,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Sidebar Navigation */}
-      <div className="flex">
-        <nav className="w-72 bg-white border-r border-slate-200 min-h-[calc(100vh-73px)]">
+      <div className="flex relative z-10">
+        <nav className="w-72 bg-white/92 border-r border-slate-200 min-h-[calc(100vh-73px)] backdrop-blur-sm">
           <ul className="space-y-1 p-4">
             <li>
               <NavLink
@@ -132,7 +132,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 bg-white/72 backdrop-blur-[1px]">
           {children}
         </main>
       </div>

@@ -129,6 +129,17 @@ router.post('/webhooks/:integrationId', bankingController.receiveWebhook);
 
 /**
  * @swagger
+ * /api/banking/reconciliation/pending:
+ *   get:
+ *     summary: Listar reconciliações pendentes
+ *     tags: [Banking]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/reconciliation/pending', authMiddleware, requireDepartment('financeiro'), bankingController.getPendingReconciliations);
+
+/**
+ * @swagger
  * /api/banking/reconciliation/{paymentRequestId}:
  *   get:
  *     summary: Obter status de reconciliação
@@ -143,16 +154,5 @@ router.post('/webhooks/:integrationId', bankingController.receiveWebhook);
  *           type: string
  */
 router.get('/reconciliation/:paymentRequestId', authMiddleware, bankingController.getReconciliation);
-
-/**
- * @swagger
- * /api/banking/reconciliation/pending:
- *   get:
- *     summary: Listar reconciliações pendentes
- *     tags: [Banking]
- *     security:
- *       - bearerAuth: []
- */
-router.get('/reconciliation/pending', authMiddleware, requireDepartment('financeiro'), bankingController.getPendingReconciliations);
 
 export default router;

@@ -86,10 +86,10 @@ export default function PaymentDetailsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Detalhes da Requisição</h1>
-          <p className="text-slate-600 mt-1">Histórico completo da solicitação {request.request_number}.</p>
+          <h1 className="text-3xl font-bold text-white">Detalhes da Requisição</h1>
+          <p className="text-slate-300 mt-1">Histórico completo da solicitação {request.request_number}.</p>
         </div>
-        <Link to="/payments" className="text-indigo-700 hover:text-indigo-900 font-medium">
+        <Link to="/payments" className="text-indigo-300 hover:text-white font-medium transition-colors">
           ← Voltar para listagem
         </Link>
       </div>

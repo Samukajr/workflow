@@ -1,7 +1,7 @@
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+      <h1 className="text-3xl font-bold text-white">Dashboard</h1>
 
       <div className="grid grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-6">
@@ -29,7 +29,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="text-center text-gray-600 text-sm">
+      <div className="text-center text-white/70 text-sm">
         <p>Dashboard em desenvolvimento... Mais funcionalidades em breve!</p>
       </div>
     </div>

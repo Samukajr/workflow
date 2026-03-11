@@ -81,19 +81,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="market-bg min-h-screen">
       {/* Header */}
-      <header className="bg-white/95 shadow-sm border-b border-slate-200 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-3">
+      <header className="header-glass sticky top-0 z-30">
+        <div className="max-w-full px-6 py-3 flex justify-between items-center gap-3">
           <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold text-indigo-700">Workflow Pagamentos</h1>
+            <h1 className="text-xl font-bold text-white tracking-wide">
+              Workflow Pagamentos
+            </h1>
           </div>
           <div className="flex items-center space-x-4 flex-wrap justify-end">
-            <span className="text-slate-700">{user?.nome}</span>
-            <span className="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">
+            <span className="text-slate-200 text-sm">{user?.nome}</span>
+            <span className="text-xs bg-indigo-600/90 text-white px-3 py-1 rounded-full font-semibold tracking-wide border border-indigo-500/50">
               {role || 'USUARIO'}
             </span>
             <button
               onClick={handleLogout}
-              className="bg-rose-600 text-white px-4 py-2 rounded-lg hover:bg-rose-700"
+              className="bg-rose-600 hover:bg-rose-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
             >
               Sair
             </button>
@@ -103,13 +105,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar Navigation */}
       <div className="flex relative z-10">
-        <nav className="w-72 bg-white/92 border-r border-slate-200 min-h-[calc(100vh-73px)] backdrop-blur-sm">
-          <ul className="space-y-1 p-4">
+        <nav className="sidebar-glass w-64 min-h-[calc(100vh-53px)] flex-shrink-0">
+          {/* Logo / branding strip */}
+          <div className="px-4 pt-4 pb-2 border-b border-white/10">
+            <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">Menu</p>
+          </div>
+          <ul className="space-y-0.5 p-3">
             <li>
               <NavLink
                 to="/dashboard"
                 className={({ isActive }) =>
-                  `block px-4 py-2 rounded-lg ${isActive ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-indigo-50'}`
+                  `flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40'
+                      : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                  }`
                 }
               >
                 Dashboard
@@ -121,7 +131,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `block px-4 py-2 rounded-lg ${isActive ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-indigo-50'}`
+                    `flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      isActive
+                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40'
+                        : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                    }`
                   }
                 >
                   {item.label}
@@ -132,7 +146,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 p-6 bg-white/72 backdrop-blur-[1px]">
+        <main className="flex-1 p-6 main-glass min-h-[calc(100vh-53px)]">
           {children}
         </main>
       </div>

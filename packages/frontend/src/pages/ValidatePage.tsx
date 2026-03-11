@@ -103,8 +103,8 @@ export default function ValidatePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-800">Validar Requisições</h1>
-        <p className="text-slate-600 mt-1">Aprove ou rejeite as requisições pendentes de validação.</p>
+        <h1 className="text-3xl font-bold text-white">Validar Requisições</h1>
+        <p className="text-slate-300 mt-1">Aprove ou rejeite as requisições pendentes de validação.</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">

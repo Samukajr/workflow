@@ -49,8 +49,8 @@ export default function PaymentListPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-800">Todas Requisicoes</h1>
-        <p className="text-slate-600 mt-1">Visualize e acompanhe o andamento completo do fluxo.</p>
+        <h1 className="text-3xl font-bold text-white">Todas Requisicoes</h1>
+        <p className="text-slate-300 mt-1">Visualize e acompanhe o andamento completo do fluxo.</p>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col md:flex-row gap-3">

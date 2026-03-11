@@ -247,6 +247,34 @@ export async function listSuppliers(search?: string): Promise<Supplier[]> {
   return result.rows;
 }
 
+export async function getSupplierByDocument(document: string): Promise<Supplier | null> {
+  const normalized = normalizeDocument(document);
+  if (!normalized) {
+    return null;
+  }
+
+  const result = await pool.query(
+    `SELECT * FROM suppliers WHERE document_normalized = $1 LIMIT 1`,
+    [normalized],
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function updateSupplierStatus(id: string, isActive: boolean): Promise<Supplier | null> {
+  const result = await pool.query(
+    `UPDATE suppliers
+     SET is_active = $2,
+         status = CASE WHEN $2 THEN 'Ativo' ELSE 'Inativo' END,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = $1
+     RETURNING *`,
+    [id, isActive],
+  );
+
+  return result.rows[0] || null;
+}
+
 export async function importSuppliersFromSpreadsheet(
   fileBuffer: Buffer,
   originalFileName: string,

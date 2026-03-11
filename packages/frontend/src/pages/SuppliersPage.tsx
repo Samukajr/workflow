@@ -16,6 +16,7 @@ export default function SuppliersPage() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [importing, setImporting] = useState(false)
+  const [updatingSupplierId, setUpdatingSupplierId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [importResult, setImportResult] = useState<SupplierImportResult | null>(null)
@@ -63,6 +64,24 @@ export default function SuppliersPage() {
     } finally {
       setImporting(false)
       event.target.value = ''
+    }
+  }
+
+  const handleToggleSupplier = async (supplier: Supplier) => {
+    try {
+      setUpdatingSupplierId(supplier.id)
+      setError('')
+      setMessage('')
+      const nextStatus = !supplier.is_active
+      const response = await supplierService.updateStatus(supplier.id, nextStatus)
+      setMessage(response.message)
+      setSuppliers((current) =>
+        current.map((entry) => (entry.id === supplier.id ? response.data : entry)),
+      )
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Erro ao atualizar status do fornecedor')
+    } finally {
+      setUpdatingSupplierId(null)
     }
   }
 
@@ -202,6 +221,7 @@ export default function SuppliersPage() {
                   <th className="px-3 py-3">Empresa</th>
                   <th className="px-3 py-3">Status</th>
                   <th className="px-3 py-3">Banco</th>
+                  <th className="px-3 py-3">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -231,6 +251,20 @@ export default function SuppliersPage() {
                       <div className="text-xs text-slate-500">
                         {supplier.bank_branch || '-'} / {supplier.bank_account || '-'}
                       </div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <button
+                        type="button"
+                        onClick={() => void handleToggleSupplier(supplier)}
+                        disabled={updatingSupplierId === supplier.id}
+                        className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${supplier.is_active ? 'bg-rose-500/15 text-rose-300 hover:bg-rose-500/25' : 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'} disabled:cursor-not-allowed disabled:opacity-60`}
+                      >
+                        {updatingSupplierId === supplier.id
+                          ? 'Salvando...'
+                          : supplier.is_active
+                            ? 'Bloquear no Sistema'
+                            : 'Reativar'}
+                      </button>
                     </td>
                   </tr>
                 ))}

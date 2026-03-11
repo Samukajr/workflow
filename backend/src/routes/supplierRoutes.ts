@@ -24,5 +24,6 @@ const upload = multer({
 
 router.get('/', authMiddleware, supplierController.getSuppliers);
 router.post('/import', authMiddleware, requireDepartment('admin'), upload.single('file'), supplierController.importSuppliers);
+router.patch('/:id/status', authMiddleware, requireDepartment('admin'), supplierController.updateSupplierStatus);
 
 export default router;

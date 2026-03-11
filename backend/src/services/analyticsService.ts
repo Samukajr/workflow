@@ -114,7 +114,7 @@ export async function getApprovalMetrics(
       params.push(department);
     }
 
-    const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+    const whereClause = where.length > 0 ? `AND ${where.join(' AND ')}` : '';
 
     const result = await pool.query(
       `SELECT

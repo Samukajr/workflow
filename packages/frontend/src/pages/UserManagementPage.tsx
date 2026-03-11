@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { apiClient } from '@/services/api'
-import Layout from '@/components/Layout'
 
 interface User {
   id: string
@@ -140,22 +139,19 @@ export default function UserManagementPage() {
 
   if (!isSuperadmin) {
     return (
-      <Layout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md">
-            <h1 className="text-2xl font-bold text-red-700 mb-4">❌ Acesso Negado</h1>
-            <p className="text-red-600">Apenas superadmin pode gerenciar usuários do sistema.</p>
-            <p className="text-red-500 text-sm mt-2">Seu papel: {user?.departamento || user?.tipo}</p>
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md">
+          <h1 className="text-2xl font-bold text-red-700 mb-4">❌ Acesso Negado</h1>
+          <p className="text-red-600">Apenas superadmin pode gerenciar usuários do sistema.</p>
+          <p className="text-red-500 text-sm mt-2">Seu papel: {user?.departamento || user?.tipo}</p>
         </div>
-      </Layout>
+      </div>
     )
   }
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
-        <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
+      <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-white mb-2">
@@ -431,8 +427,7 @@ export default function UserManagementPage() {
               </div>
             </div>
           )}
-        </div>
       </div>
-    </Layout>
+    </div>
   )
 }

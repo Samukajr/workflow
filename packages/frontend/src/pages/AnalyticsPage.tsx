@@ -112,8 +112,8 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">📊 Analytics & Relatórios</h1>
-        <p className="text-slate-600 mt-2">Período: <span className="font-semibold">{analytics.period}</span></p>
+        <h1 className="text-3xl font-bold text-white">📊 Analytics & Relatórios</h1>
+        <p className="text-slate-300 mt-2">Período: <span className="font-semibold">{analytics.period}</span></p>
       </div>
 
       {/* Period Selector */}

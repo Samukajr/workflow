@@ -66,7 +66,7 @@ export default function RelatoriosPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-800">Relatórios</h1>
+      <h1 className="text-3xl font-bold text-white">Relatórios</h1>
 
       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-sm text-indigo-900">
         {isSuperadmin

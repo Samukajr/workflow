@@ -135,8 +135,8 @@ export default function BankingIntegrationPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">🏦 Integrações Bancárias</h1>
-          <p className="text-slate-600 mt-1">Gerenciar conexões com bancos e processar pagamentos</p>
+          <h1 className="text-3xl font-bold text-white">🏦 Integrações Bancárias</h1>
+          <p className="text-slate-300 mt-1">Gerenciar conexões com bancos e processar pagamentos</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}

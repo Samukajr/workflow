@@ -161,9 +161,9 @@ function LgpdPage() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Shield className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">Privacidade e Proteção de Dados</h1>
+          <h1 className="text-3xl font-bold text-white">Privacidade e Proteção de Dados</h1>
         </div>
-        <p className="text-gray-600">Gerenciar suas preferências de privacidade conforme a LGPD (Lei 13.709/2018)</p>
+        <p className="text-slate-300">Gerenciar suas preferências de privacidade conforme a LGPD (Lei 13.709/2018)</p>
       </div>
 
       {/* Success Message */}

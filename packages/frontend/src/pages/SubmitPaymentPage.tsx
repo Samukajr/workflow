@@ -26,8 +26,8 @@ export default function SubmitPaymentPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-800">Submeter Requisicao</h1>
-        <p className="text-slate-600 mt-1">Envie uma nova solicitacao para o fluxo de aprovacao e pagamento.</p>
+        <h1 className="text-3xl font-bold text-white">Submeter Requisicao</h1>
+        <p className="text-slate-300 mt-1">Envie uma nova solicitacao para o fluxo de aprovacao e pagamento.</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">

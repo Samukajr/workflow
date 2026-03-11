@@ -73,6 +73,34 @@ export async function getPaymentRequestById(id: string): Promise<PaymentRequest 
   return result.rows[0] || null;
 }
 
+export async function getPaymentRequestByIdentifier(identifier: string): Promise<PaymentRequest | null> {
+  const trimmedIdentifier = identifier.trim();
+
+  if (!trimmedIdentifier) {
+    return null;
+  }
+
+  const requestNumberCandidates = new Set<string>([trimmedIdentifier]);
+  if (!trimmedIdentifier.startsWith('REQ-')) {
+    requestNumberCandidates.add(`REQ-${trimmedIdentifier}`);
+  }
+
+  const requestNumberList = Array.from(requestNumberCandidates);
+  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  const result = await pool.query(
+    `SELECT *
+     FROM payment_requests
+      WHERE (CASE WHEN $1::text ~* $2 THEN id = $1::uuid ELSE FALSE END)
+        OR request_number = ANY($3::text[])
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [trimmedIdentifier, uuidPattern.source, requestNumberList],
+  );
+
+  return result.rows[0] || null;
+}
+
 export async function getPaymentRequestsByStatus(status: string, limit = 50, offset = 0): Promise<PaymentRequest[]> {
   const result = await pool.query(
     'SELECT * FROM payment_requests WHERE status = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3',

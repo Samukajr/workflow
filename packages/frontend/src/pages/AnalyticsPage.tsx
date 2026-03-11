@@ -48,7 +48,7 @@ export default function AnalyticsPage() {
       setLoading(true)
       setError('')
       const response = await paymentService.getAnalytics(period)
-      setAnalytics(response as any)
+      setAnalytics(response.data)
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar analytics')
     } finally {

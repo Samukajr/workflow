@@ -13,7 +13,33 @@ function getErrorInfo(err: unknown): { code?: string; message: string } {
 
 function isSchemaError(err: unknown): boolean {
   const { code } = getErrorInfo(err);
-  return code === '42P01' || code === '42703';
+  return code === '22P02' || code === '42P01' || code === '42703' || code === '42883';
+}
+
+async function getDepartmentsWithRequests(): Promise<string[]> {
+  try {
+    const result = await pool.query(
+      `SELECT DISTINCT u.department::text AS department
+       FROM users u
+       INNER JOIN payment_requests pr ON pr.user_id = u.id
+       WHERE u.department IS NOT NULL`,
+    );
+
+    return result.rows
+      .map((row: { department: string | null }) => row.department)
+      .filter((department): department is string => Boolean(department));
+  } catch (error: unknown) {
+    if (isSchemaError(error)) {
+      const errorInfo = getErrorInfo(error);
+      logger.warn('Não foi possível listar departamentos para analytics; retornando vazio', {
+        code: errorInfo.code,
+        message: errorInfo.message,
+      });
+      return [];
+    }
+
+    throw error;
+  }
 }
 
 // ============= ANALYTICS TYPES =============
@@ -146,7 +172,7 @@ export async function getApprovalMetricsByDepartment(
   fromDate?: Date,
   toDate?: Date,
 ): Promise<ApprovalMetricsByDepartment> {
-  const departments = ['submissao', 'validacao', 'financeiro', 'admin', 'superadmin'];
+  const departments = await getDepartmentsWithRequests();
   const result: ApprovalMetricsByDepartment = {};
 
   for (const dept of departments) {

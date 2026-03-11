@@ -1,6 +1,5 @@
 import { pool } from '../config/database';
 import bcrypt from 'bcryptjs';
-import logger from '../utils/logger';
 
 async function restoreUsers() {
   try {
@@ -46,8 +45,8 @@ async function restoreUsers() {
           );
           console.log(`✅ Criado: ${user.email} (${user.department})`);
           created++;
-        } catch (error: any) {
-          console.error(`❌ Erro ao criar ${user.email}:`, error.message);
+        } catch (error: unknown) {
+          console.error(`❌ Erro ao criar ${user.email}:`, error instanceof Error ? error.message : String(error));
         }
       }
     }
@@ -61,8 +60,8 @@ async function restoreUsers() {
     console.log('   Senha: DemoPass@123\n');
 
     await pool.end();
-  } catch (error: any) {
-    console.error('❌ Erro ao restaurar usuários:', error.message);
+  } catch (error: unknown) {
+    console.error('❌ Erro ao restaurar usuários:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

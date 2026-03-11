@@ -27,7 +27,7 @@ router.post('/consent', authMiddleware, async (req: Request, res: Response) => {
 
     const consent = await recordConsent(userId, consent_type, clientIp, userAgent);
     res.status(201).json({ success: true, message: 'Consentimento registrado', consent });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Erro ao registrar consentimento:', error);
     res.status(500).json({ success: false, message: 'Erro ao registrar consentimento' });
   }
@@ -45,7 +45,7 @@ router.delete('/consent', authMiddleware, async (req: Request, res: Response) =>
 
     await revokeConsent(userId, consent_type);
     res.json({ success: true, message: 'Consentimento revogado' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Erro ao revogar consentimento:', error);
     res.status(500).json({ success: false, message: 'Erro ao revogar consentimento' });
   }
@@ -63,7 +63,7 @@ router.post('/data-deletion', authMiddleware, async (req: Request, res: Response
       message: 'Requisição criada. Será processada em até 30 dias.',
       request,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Erro ao solicitar deleção:', error);
     res.status(500).json({ success: false, message: 'Erro ao solicitar deleção' });
   }
@@ -80,7 +80,7 @@ router.get('/data-export', authMiddleware, async (req: Request, res: Response) =
     res.send(data);
 
     logger.info(`Dados exportados para ${userId}`);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Erro ao exportar dados:', error);
     res.status(500).json({ success: false, message: 'Erro ao exportar dados' });
   }
@@ -93,7 +93,7 @@ router.get('/data-audit', authMiddleware, async (req: Request, res: Response) =>
     const audit = await getPersonalDataAudit(userId);
 
     res.json({ success: true, message: 'Histórico de processamento', audit });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Erro ao obter auditoria:', error);
     res.status(500).json({ success: false, message: 'Erro ao obter auditoria' });
   }
@@ -109,7 +109,7 @@ router.get('/deletion-requests', authMiddleware, async (req: Request, res: Respo
 
     const requests = await getPendingDeletionRequests();
     res.json({ success: true, message: 'Requisições pendentes', requests });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Erro ao listar requisições:', error);
     res.status(500).json({ success: false, message: 'Erro ao listar' });
   }
@@ -124,7 +124,7 @@ router.post('/deletion-requests/:id/approve', authMiddleware, async (req: Reques
 
     await approveDeletionRequest(req.params.id, req.user.id || '');
     res.json({ success: true, message: 'Deleção aprovada' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Erro ao aprovar deleção:', error);
     res.status(500).json({ success: false, message: 'Erro ao aprovar' });
   }

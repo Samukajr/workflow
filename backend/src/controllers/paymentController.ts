@@ -96,7 +96,7 @@ export const submitPaymentRequest = asyncHandler(async (req: Request, res: Respo
         status: 'válida',
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (req.file?.filename) {
       const uploadDir = path.isAbsolute(env.UPLOAD_DIR) ? env.UPLOAD_DIR : path.resolve(process.cwd(), env.UPLOAD_DIR);
       const uploadedFilePath = path.join(uploadDir, req.file.filename);
@@ -106,7 +106,7 @@ export const submitPaymentRequest = asyncHandler(async (req: Request, res: Respo
       }
     }
 
-    throw new ErrorHandler(500, err.message);
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -135,8 +135,8 @@ export const validatePaymentRequest = asyncHandler(async (req: Request, res: Res
       message: `Requisição ${value.approved ? 'aprovada' : 'rejeitada'} com sucesso`,
       payment_request: paymentRequest,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(400, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(400, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -165,8 +165,8 @@ export const processPayment = asyncHandler(async (req: Request, res: Response) =
       message: 'Pagamento processado com sucesso',
       payment_request: paymentRequest,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(400, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(400, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -195,8 +195,8 @@ export const closePaymentRequest = asyncHandler(async (req: Request, res: Respon
       message: 'Solicitação encerrada com sucesso',
       payment_request: paymentRequest,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(400, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(400, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -218,9 +218,9 @@ export const getPaymentRequest = asyncHandler(async (req: Request, res: Response
       success: true,
       data: details,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof ErrorHandler) throw err;
-    throw new ErrorHandler(500, err.message);
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -245,8 +245,8 @@ export const listPaymentRequests = asyncHandler(async (req: Request, res: Respon
       data: requests,
       pagination: { limit: Number(limit), offset: Number(offset) },
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -262,8 +262,8 @@ export const getDashboard = asyncHandler(async (req: Request, res: Response) => 
       success: true,
       data: stats,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -291,9 +291,9 @@ export const getChecklist = asyncHandler(async (req: Request, res: Response) => 
       success: true,
       data: checklistData,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof ErrorHandler) throw err;
-    throw new ErrorHandler(500, err.message);
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -313,8 +313,8 @@ export const getApprovalRules = asyncHandler(async (req: Request, res: Response)
       success: true,
       data: rules,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -336,8 +336,8 @@ export const getApprovals = asyncHandler(async (req: Request, res: Response) => 
       success: true,
       data: approvals,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
   }
 });
 
@@ -374,8 +374,8 @@ export const addToBlocklist = asyncHandler(async (req: Request, res: Response) =
       success: true,
       message: 'Fornecedor adicionado à blocklist com sucesso',
     });
-  } catch (err: any) {
-    throw new ErrorHandler(400, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(400, err instanceof Error ? err.message : String(err));
   }
 });
 

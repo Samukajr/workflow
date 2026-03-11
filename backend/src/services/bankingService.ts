@@ -1,4 +1,3 @@
-import * as queries from '../database/queries';
 import { pool } from '../config/database';
 import {
   BankIntegration,

@@ -235,7 +235,7 @@ export async function updatePaymentRequestApprovers(
   requiresDouble?: boolean
 ): Promise<void> {
   let query = 'UPDATE payment_requests SET updated_at = NOW()';
-  const params: any[] = [];
+  const params: Array<string | boolean | undefined> = [];
   let paramCount = 0;
 
   if (firstApproverId !== undefined) {

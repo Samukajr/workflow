@@ -129,7 +129,7 @@ export async function initializeDatabase(): Promise<void> {
     await applyPhase2Migrations();
     
   } catch (error) {
-    if ((error as any).code === '42P07' || (error as any).message.includes('already exists')) {
+    if ((error as { code?: string }).code === '42P07' || (error instanceof Error && error.message.includes('already exists'))) {
       logger.info('Tabelas já existem, saltando criação');
     } else {
       logger.error('Erro ao criar tabelas:', error);

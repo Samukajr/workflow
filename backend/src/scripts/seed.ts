@@ -57,15 +57,15 @@ async function seedDatabase(): Promise<void> {
     logger.info('🎉 SEED CONCLUÍDO COM SUCESSO!');
     logger.info('===========================================\n');
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('❌ ERRO ao fazer seed do banco de dados:', error);
-    
-    if (error.code === '23505') {
+
+    if ((error as { code?: string }).code === '23505') {
       logger.error('   Erro: Usuários já existem (violação de chave única)');
-    } else if (error.code === '42P01') {
+    } else if ((error as { code?: string }).code === '42P01') {
       logger.error('   Erro: Tabela "users" não existe. Execute as migrations primeiro!');
     }
-    
+
     throw error;
   }
 }

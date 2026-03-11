@@ -15,7 +15,7 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true, // Retorna info em `RateLimit-*` headers
   legacyHeaders: false,
-  skip: (req) => env.NODE_ENV === 'development', // Desabilitar em development
+  skip: (_req) => env.NODE_ENV === 'development', // Desabilitar em development
   keyGenerator: (req) => {
     // Usar IP real (considerando proxies como Render)
     return req.ip || req.socket.remoteAddress || 'unknown';
@@ -36,7 +36,7 @@ export const passwordResetLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => env.NODE_ENV === 'development',
+  skip: (_req) => env.NODE_ENV === 'development',
   keyGenerator: (req) => {
     return req.ip || req.socket.remoteAddress || 'unknown';
   },
@@ -56,7 +56,7 @@ export const uploadLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => env.NODE_ENV === 'development',
+  skip: (_req) => env.NODE_ENV === 'development',
   keyGenerator: (req) => {
     // Se autenticado, usar ID do usuário. Se não, usar IP
     return req.user?.id || req.ip || req.socket.remoteAddress || 'unknown';
@@ -77,7 +77,7 @@ export const generalLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => env.NODE_ENV === 'development',
+  skip: (_req) => env.NODE_ENV === 'development',
   keyGenerator: (req) => {
     return req.ip || req.socket.remoteAddress || 'unknown';
   },

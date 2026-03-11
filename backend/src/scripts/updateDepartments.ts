@@ -1,5 +1,4 @@
 import { pool } from '../config/database';
-import logger from '../utils/logger';
 
 async function updateDepartmentEnum() {
   try {
@@ -16,11 +15,11 @@ async function updateDepartmentEnum() {
           ALTER TYPE department_enum ADD VALUE IF NOT EXISTS '${dept}';
         `);
         console.log(`✅ Departamento '${dept}' adicionado ao enum`);
-      } catch (error: any) {
-        if (error.message.includes('already exists')) {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('already exists')) {
           console.log(`⏭️  Departamento '${dept}' já existe no enum`);
         } else {
-          console.error(`❌ Erro ao adicionar '${dept}':`, error.message);
+          console.error(`❌ Erro ao adicionar '${dept}':`, error instanceof Error ? error.message : String(error));
         }
       }
     }
@@ -44,8 +43,8 @@ async function updateDepartmentEnum() {
     console.log('===========================================\n');
 
     await pool.end();
-  } catch (error: any) {
-    console.error('❌ Erro ao atualizar enum:', error.message);
+  } catch (error: unknown) {
+    console.error('❌ Erro ao atualizar enum:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

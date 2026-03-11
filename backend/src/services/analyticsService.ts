@@ -190,23 +190,7 @@ export async function getBlocklistMetrics(
   toDate?: Date,
 ): Promise<BlocklistMetrics> {
   try {
-    const where: string[] = [];
-    const params: SqlParam[] = [];
-    let paramCount = 0;
-
-    if (fromDate) {
-      paramCount++;
-      where.push(`created_at >= $${paramCount}`);
-      params.push(fromDate);
-    }
-
-    if (toDate) {
-      paramCount++;
-      where.push(`created_at <= $${paramCount}`);
-      params.push(toDate);
-    }
-
-    const whereClause = where.length > 0 ? `AND ${where.join(' AND ')}` : '';
+    const params: SqlParam[] = [fromDate ?? null, toDate ?? null];
 
     // Total bloqueados
     const totalResult = await pool.query(
@@ -231,7 +215,9 @@ export async function getBlocklistMetrics(
     // Motivos mais comuns
     const reasonsResult = await pool.query(
       `SELECT reason, COUNT(*) as count FROM supplier_blocklist 
-       WHERE is_active = true ${whereClause} 
+       WHERE is_active = true
+         AND ($1::timestamp IS NULL OR created_at >= $1::timestamp)
+         AND ($2::timestamp IS NULL OR created_at <= $2::timestamp)
        GROUP BY reason ORDER BY count DESC LIMIT 5`,
       params,
     );

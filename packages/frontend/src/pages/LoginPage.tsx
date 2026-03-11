@@ -27,8 +27,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
+    <div className="market-bg min-h-screen flex items-center justify-center px-4 py-8">
+      <div className="market-glass rounded-2xl p-8 w-full max-w-md">
         <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
           Workflow Pagamentos
         </h1>

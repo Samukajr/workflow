@@ -99,3 +99,35 @@ export function requireDepartment(...departments: string[]) {
     next();
   };
 }
+
+export function requireSuperadmin(req: Request, res: Response, next: NextFunction): void {
+  if (!req.user) {
+    res.status(401).json({
+      success: false,
+      message: 'Não autenticado',
+    });
+    return;
+  }
+
+  if (req.user.department !== 'superadmin') {
+    const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+    logger.warn(
+      {
+        userId: req.user.id,
+        userDepartment: req.user.department,
+        path: req.path,
+        clientIp,
+        timestamp: new Date().toISOString(),
+      },
+      '❌ ACESSO NEGADO: operação exclusiva para superadmin',
+    );
+
+    res.status(403).json({
+      success: false,
+      message: 'Acesso negado: operação exclusiva para superadmin',
+    });
+    return;
+  }
+
+  next();
+}

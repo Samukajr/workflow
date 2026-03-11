@@ -241,23 +241,6 @@ router.get('/reports/export', authMiddleware, paymentController.exportReport);
  */
 router.get('/', authMiddleware, paymentController.listPaymentRequests);
 
-/**
- * @swagger
- * /api/payments/{id}:
- *   get:
- *     summary: Obter detalhes de uma requisição de pagamento
- *     tags: [Payments]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- */
-router.get('/:id', authMiddleware, paymentController.getPaymentRequest);
-
 // ===== FASE 2: NOVAS ROTAS =====
 
 /**
@@ -328,5 +311,22 @@ router.get('/approvals/:id', authMiddleware, paymentController.getApprovals);
  *                 type: string
  */
 router.post('/blocklist', authMiddleware, requireDepartment('validacao', 'admin', 'superadmin'), paymentController.addToBlocklist);
+
+/**
+ * @swagger
+ * /api/payments/{id}:
+ *   get:
+ *     summary: Obter detalhes de uma requisição de pagamento
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.get('/:id', authMiddleware, paymentController.getPaymentRequest);
 
 export default router;

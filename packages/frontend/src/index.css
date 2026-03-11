@@ -2,10 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --market-bg-1: #061022;
+  --market-bg-2: #0b1b3d;
+  --market-bg-3: #10295a;
+  --market-accent-up: #00d084;
+  --market-accent-down: #ff4d6d;
+  --market-grid: rgba(130, 159, 220, 0.12);
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.market-bg {
+  position: relative;
+  background:
+    radial-gradient(1200px 700px at 5% 5%, rgba(0, 208, 132, 0.16), transparent 52%),
+    radial-gradient(900px 550px at 95% 15%, rgba(255, 77, 109, 0.12), transparent 50%),
+    linear-gradient(140deg, var(--market-bg-1), var(--market-bg-2) 45%, var(--market-bg-3));
+  overflow: hidden;
+}
+
+.market-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--market-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--market-grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: 0.35;
+}
+
+.market-bg::after {
+  content: '';
+  position: absolute;
+  inset: auto -10% 10% -10%;
+  height: 180px;
+  pointer-events: none;
+  background:
+    linear-gradient(95deg, transparent 0%, rgba(0, 208, 132, 0.45) 25%, transparent 45%),
+    linear-gradient(100deg, transparent 20%, rgba(255, 77, 109, 0.35) 55%, transparent 80%);
+  filter: blur(20px);
+  animation: marketPulse 9s ease-in-out infinite alternate;
+}
+
+.market-glass {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  box-shadow: 0 20px 60px rgba(3, 12, 35, 0.34);
+  backdrop-filter: blur(8px);
+}
+
+@keyframes marketPulse {
+  from {
+    transform: translateX(-2%) translateY(0) scaleX(0.98);
+    opacity: 0.65;
+  }
+  to {
+    transform: translateX(3%) translateY(-8px) scaleX(1.02);
+    opacity: 1;
+  }
 }

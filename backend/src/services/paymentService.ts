@@ -317,13 +317,13 @@ export async function closePaymentRequest(
 }
 
 export async function getPaymentRequestDetails(id: string): Promise<{ request: PaymentRequest; workflow: PaymentWorkflow[] } | null> {
-  const request = await queries.getPaymentRequestById(id);
+  const request = await queries.getPaymentRequestByIdentifier(id);
 
   if (!request) {
     return null;
   }
 
-  const workflow = await queries.getWorkflowHistory(id);
+  const workflow = await queries.getWorkflowHistory(request.id);
 
   return { request, workflow };
 }
@@ -382,6 +382,12 @@ export async function getApprovalRules() {
 }
 
 export async function getPaymentApprovals(paymentRequestId: string) {
-  return await queries.getPaymentApprovals(paymentRequestId);
+  const request = await queries.getPaymentRequestByIdentifier(paymentRequestId);
+
+  if (!request) {
+    return [];
+  }
+
+  return await queries.getPaymentApprovals(request.id);
 }
 

@@ -54,6 +54,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       { label: 'Integrações Bancárias', path: '/banking' },
       { label: 'Regras de Alçadas', path: '/alcadas' },
       { label: 'Fornecedores Bloqueados', path: '/blocklist' },
+      { label: 'Gerenciar Usuários', path: '/users' },
     ],
     SUPERADMIN: [
       { label: 'Submeter Requisicao', path: '/submit' },
@@ -65,6 +66,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       { label: 'Integrações Bancárias', path: '/banking' },
       { label: 'Regras de Alçadas', path: '/alcadas' },
       { label: 'Fornecedores Bloqueados', path: '/blocklist' },
+      { label: 'Gerenciar Usuários', path: '/users' },
     ],
   }
 

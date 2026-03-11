@@ -16,6 +16,7 @@ import BankingIntegrationPage from './pages/BankingIntegrationPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import LgpdPage from './pages/LgpdPage'
+import UserManagementPage from './pages/UserManagementPage'
 
 export default function App() {
   const { isAuthenticated } = useAuthStore()
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/blocklist" element={<BlocklistPage />} />
           <Route path="/alcadas" element={<ApprovalRulesPage />} />
           <Route path="/lgpd" element={<LgpdPage />} />
+          <Route path="/users" element={<UserManagementPage />} />
 
           {/* Rotas legadas para compatibilidade */}
           <Route path="/requisicoes" element={<Navigate to="/payments" replace />} />

@@ -53,11 +53,13 @@ export default function SubmitPaymentPage() {
     return results.slice(0, 8)
   }, [catalog, form.supplierQuery])
 
+  const supplierNotFound = Boolean(form.supplierQuery.trim()) && !form.selectedSupplier && !catalogLoading
+
   const loadSuppliers = async () => {
     try {
       setCatalogLoading(true)
       const response = await supplierService.list()
-      setCatalog(response.data.filter((supplier) => supplier.is_active))
+      setCatalog(response.data)
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Erro ao carregar catálogo de fornecedores')
     } finally {
@@ -177,7 +179,7 @@ export default function SubmitPaymentPage() {
                     setError('')
                   }}
                   onFocus={() => setShowSuggestions(true)}
-                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30"
+                  className={`w-full rounded-lg border px-3 py-2 text-white outline-none transition focus:ring-2 ${supplierNotFound ? 'border-amber-500 bg-amber-500/10 focus:border-amber-400 focus:ring-amber-500/30' : 'border-slate-600 bg-slate-800 focus:border-indigo-500 focus:ring-indigo-500/30'}`}
                   placeholder={catalogLoading ? 'Carregando fornecedores...' : 'Digite nome, empresa ou CNPJ'}
                   required
                 />
@@ -202,11 +204,18 @@ export default function SubmitPaymentPage() {
                           onClick={() => selectSupplier(supplier)}
                           className="block w-full border-b border-slate-800 px-4 py-3 text-left transition hover:bg-slate-800"
                         >
-                          <div className="font-medium text-white">{supplier.supplier_name}</div>
-                          <div className="mt-1 text-xs text-slate-400">
-                            {supplier.document_raw}
-                            {supplier.company ? ` | ${supplier.company}` : ''}
-                            {supplier.city_state ? ` | ${supplier.city_state}` : ''}
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="font-medium text-white">{supplier.supplier_name}</div>
+                              <div className="mt-1 text-xs text-slate-400">
+                                {supplier.document_raw}
+                                {supplier.company ? ` | ${supplier.company}` : ''}
+                                {supplier.city_state ? ` | ${supplier.city_state}` : ''}
+                              </div>
+                            </div>
+                            <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${supplier.is_active ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'}`}>
+                              {supplier.is_active ? 'ATIVO' : 'BLOQUEADO'}
+                            </span>
                           </div>
                         </button>
                       ))
@@ -218,7 +227,12 @@ export default function SubmitPaymentPage() {
                   </div>
                 )}
               </div>
-              <p className="mt-2 text-xs text-slate-400">A seleção usa a base importada da sua planilha de fornecedores.</p>
+              <p className="mt-2 text-xs text-slate-400">Somente fornecedores cadastrados e ativos podem ser usados na requisição.</p>
+              {supplierNotFound && (
+                <div className="mt-2 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+                  Fornecedor não encontrado no catálogo. A equipe não consegue enviar pagamento para fornecedores fora do cadastro interno.
+                </div>
+              )}
             </div>
 
             <div>
@@ -297,6 +311,11 @@ export default function SubmitPaymentPage() {
             <h2 className="text-lg font-semibold text-white">Fornecedor Selecionado</h2>
             {form.selectedSupplier ? (
               <div className="mt-4 space-y-3 text-sm text-slate-300">
+                <div>
+                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${form.selectedSupplier.is_active ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'}`}>
+                    {form.selectedSupplier.is_active ? 'Fornecedor liberado para uso' : 'Fornecedor bloqueado no sistema'}
+                  </span>
+                </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-500">Nome</p>
                   <p className="font-medium text-white">{form.selectedSupplier.supplier_name}</p>

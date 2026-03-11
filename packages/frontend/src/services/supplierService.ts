@@ -42,6 +42,12 @@ export const supplierService = {
     return apiClient.get<{ success: boolean; data: Supplier[] }>(`/suppliers${queryString}`)
   },
 
+  async updateStatus(id: string, isActive: boolean) {
+    return apiClient.request<{ success: boolean; message: string; data: Supplier }>('PATCH', `/suppliers/${id}/status`, {
+      is_active: isActive,
+    })
+  },
+
   async importSpreadsheet(file: File) {
     const formData = new FormData()
     formData.append('file', file)

@@ -33,3 +33,20 @@ export const importSuppliers = asyncHandler(async (req: Request, res: Response) 
     data: result,
   });
 });
+
+export const updateSupplierStatus = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const isActive = Boolean(req.body?.is_active);
+
+  const supplier = await supplierService.updateSupplierStatus(id, isActive);
+
+  if (!supplier) {
+    throw new ErrorHandler(404, 'Fornecedor não encontrado');
+  }
+
+  res.status(200).json({
+    success: true,
+    message: isActive ? 'Fornecedor reativado com sucesso' : 'Fornecedor bloqueado com sucesso',
+    data: supplier,
+  });
+});

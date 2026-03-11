@@ -2,6 +2,7 @@ import * as queries from '../database/queries';
 import { PaymentRequest, PaymentWorkflow } from '../types';
 import logger from '../utils/logger';
 import { notifySecondApprovers } from './notificationService';
+import { getSupplierByDocument } from './supplierService';
 
 export async function submitPaymentRequest(
   userId: string,
@@ -13,20 +14,32 @@ export async function submitPaymentRequest(
   documentUrl: string,
   notes?: string,
 ): Promise<PaymentRequest> {
+  const supplier = await getSupplierByDocument(supplierDocument);
+
+  if (!supplier) {
+    logger.warn(`Tentativa de submissão com fornecedor não cadastrado: ${supplierDocument}`);
+    throw new Error('Fornecedor não está cadastrado no sistema. Solicite o cadastro antes de enviar a requisição.');
+  }
+
+  if (!supplier.is_active) {
+    logger.warn(`Tentativa de submissão com fornecedor inativo: ${supplierDocument}`);
+    throw new Error(`Fornecedor ${supplier.supplier_name} está bloqueado/inativo no cadastro mestre.`);
+  }
+
   // FASE 2: Verificar blocklist do fornecedor
-  const blocklisted = await queries.checkSupplierBlocklist(supplierDocument);
+  const blocklisted = await queries.checkSupplierBlocklist(supplier.document_raw);
   
   if (blocklisted) {
-    logger.warn(`Tentativa de submissão com fornecedor bloqueado: ${supplierDocument}`);
-    throw new Error(`Fornecedor ${supplierName} está na blocklist: ${blocklisted.reason}`);
+    logger.warn(`Tentativa de submissão com fornecedor bloqueado: ${supplier.document_raw}`);
+    throw new Error(`Fornecedor ${supplier.supplier_name} está na blocklist: ${blocklisted.reason}`);
   }
 
   const paymentRequest = await queries.createPaymentRequest(
     userId,
     documentType,
     amount,
-    supplierName,
-    supplierDocument,
+    supplier.supplier_name,
+    supplier.document_raw,
     dueDate,
     documentUrl,
     notes,

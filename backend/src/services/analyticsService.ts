@@ -1,9 +1,19 @@
-import * as queries from '../database/queries';
 import { pool } from '../config/database';
 import logger from '../utils/logger';
 
-function isSchemaError(err: any): boolean {
-  return err?.code === '42P01' || err?.code === '42703';
+type SqlParam = string | number | boolean | Date | null;
+
+function getErrorInfo(err: unknown): { code?: string; message: string } {
+  if (err instanceof Error) {
+    const errorWithCode = err as Error & { code?: string };
+    return { code: errorWithCode.code, message: err.message };
+  }
+  return { message: 'Erro desconhecido' };
+}
+
+function isSchemaError(err: unknown): boolean {
+  const { code } = getErrorInfo(err);
+  return code === '42P01' || code === '42703';
 }
 
 // ============= ANALYTICS TYPES =============
@@ -56,8 +66,8 @@ export async function getApprovalMetrics(
   department?: string,
 ): Promise<ApprovalMetrics> {
   try {
-    const where = [];
-    const params: any[] = [];
+    const where: string[] = [];
+    const params: SqlParam[] = [];
     let paramCount = 0;
 
     if (fromDate) {
@@ -111,11 +121,12 @@ export async function getApprovalMetrics(
       rejection_rate: total > 0 ? (rejected / total) * 100 : 0,
       average_approval_time_hours: row.avg_approval_hours ? parseFloat(row.avg_approval_hours) : 0,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (isSchemaError(error)) {
+      const errorInfo = getErrorInfo(error);
       logger.warn('Estrutura de analytics incompleta no banco; retornando métricas zeradas', {
-        code: error.code,
-        message: error.message,
+        code: errorInfo.code,
+        message: errorInfo.message,
       });
       return {
         total_requests: 0,
@@ -153,8 +164,8 @@ export async function getBlocklistMetrics(
   toDate?: Date,
 ): Promise<BlocklistMetrics> {
   try {
-    const where = [];
-    const params: any[] = [];
+    const where: string[] = [];
+    const params: SqlParam[] = [];
     let paramCount = 0;
 
     if (fromDate) {
@@ -203,16 +214,17 @@ export async function getBlocklistMetrics(
       total_blocked_suppliers: totalBlocked,
       blocks_this_month: thisMonth,
       blocks_this_quarter: thisQuarter,
-      most_common_reasons: reasonsResult.rows.map((row: any) => ({
+      most_common_reasons: reasonsResult.rows.map((row: { reason: string; count: string }) => ({
         reason: row.reason,
         count: parseInt(row.count, 10),
       })),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (isSchemaError(error)) {
+      const errorInfo = getErrorInfo(error);
       logger.warn('Tabela de blocklist ausente/incompleta; retornando métricas zeradas', {
-        code: error.code,
-        message: error.message,
+        code: errorInfo.code,
+        message: errorInfo.message,
       });
       return {
         total_blocked_suppliers: 0,
@@ -226,13 +238,13 @@ export async function getBlocklistMetrics(
 }
 
 export async function getHighValueTransactionMetrics(
-  threshold: number = 50000,
+  threshold = 50000,
   fromDate?: Date,
   toDate?: Date,
 ): Promise<HighValueTransactionMetrics> {
   try {
     const where = ['amount >= $1'];
-    const params: any[] = [threshold];
+    const params: SqlParam[] = [threshold];
     let paramCount = 1;
 
     if (fromDate) {
@@ -266,11 +278,12 @@ export async function getHighValueTransactionMetrics(
       max_amount: row.max_amount ? parseFloat(row.max_amount) : 0,
       requires_superadmin_approval: parseInt(row.requires_admin, 10),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (isSchemaError(error)) {
+      const errorInfo = getErrorInfo(error);
       logger.warn('Colunas de aprovação não disponíveis; retornando métricas de alto valor zeradas', {
-        code: error.code,
-        message: error.message,
+        code: errorInfo.code,
+        message: errorInfo.message,
       });
       return {
         total_high_value: 0,
@@ -299,10 +312,11 @@ export async function getAnalyticsSummary(
     case 'month':
       fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
       break;
-    case 'quarter':
+    case 'quarter': {
       const quarter = Math.floor(now.getMonth() / 3);
       fromDate = new Date(now.getFullYear(), quarter * 3, 1);
       break;
+    }
     case 'year':
       fromDate = new Date(now.getFullYear(), 0, 1);
       break;
@@ -314,7 +328,7 @@ export async function getAnalyticsSummary(
   const highValueMetrics = await getHighValueTransactionMetrics(50000, fromDate, now);
 
   // Total de pagamentos processados
-  let volumeRow: any = { total: '0', volume: null };
+  let volumeRow: { total: string; volume: string | null } = { total: '0', volume: null };
   try {
     const volumeResult = await pool.query(
       `SELECT 
@@ -325,13 +339,14 @@ export async function getAnalyticsSummary(
       [fromDate, now],
     );
     volumeRow = volumeResult.rows[0];
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (!isSchemaError(error)) {
       throw error;
     }
+    const errorInfo = getErrorInfo(error);
     logger.warn('Falha ao calcular volume de pagamentos; retornando zero', {
-      code: error.code,
-      message: error.message,
+      code: errorInfo.code,
+      message: errorInfo.message,
     });
   }
 

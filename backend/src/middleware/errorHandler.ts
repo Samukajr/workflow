@@ -8,7 +8,7 @@ export class ErrorHandler extends Error {
   }
 }
 
-export function errorMiddleware(err: Error, req: Request, res: Response, next: NextFunction): void {
+export function errorMiddleware(err: Error, req: Request, res: Response, _next: NextFunction): void {
   logger.error({
     error: err.message,
     stack: err.stack,
@@ -30,7 +30,9 @@ export function errorMiddleware(err: Error, req: Request, res: Response, next: N
   });
 }
 
-export function asyncHandler(fn: Function) {
+type AsyncRequestHandler = (req: Request, res: Response, next: NextFunction) => Promise<unknown>;
+
+export function asyncHandler(fn: AsyncRequestHandler) {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };

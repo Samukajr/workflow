@@ -1,26 +1,12 @@
-#!/bin/bash
+async function main(): Promise<void> {
+  console.log('Seed do packages/backend não configurado neste workspace.');
+  console.log('Use o backend principal em backend/src/scripts/setupProduction.ts para popular dados.');
+}
 
-# Seed script - Popula banco com dados de exemplo
-
-echo "🌱 Populando banco de dados com dados de exemplo..."
-
-# Criar departamentos
-echo "Criando departamentos..."
-
-# Criar usuários
-echo "Criando usuários..."
-
-# Criar requisições de exemplo
-echo "Criando requisições de exemplo..."
-
-echo "✅ Seed completado!"
-echo ""
-echo "Dados criados:"
-echo "- 4 Departamentos"
-echo "- 12 Usuários"
-echo "- 5 Requisições"
-echo ""
-echo "Para fazer login:"
-echo "Email: admin@empresa.com"
-echo "Senha: admin123"
-echo ""
+main()
+  .then(() => process.exit(0))
+  .catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido ao executar seed';
+    console.error(message);
+    process.exit(1);
+  });

@@ -2,6 +2,12 @@ import { Request, Response } from 'express';
 import * as analyticsService from '../services/analyticsService';
 import { asyncHandler, ErrorHandler } from '../middleware/errorHandler';
 
+type AnalyticsPeriod = 'today' | 'week' | 'month' | 'quarter' | 'year';
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback;
+}
+
 /**
  * GET /api/analytics/metrics
  * Obter métricas de aprovação e rejeição
@@ -18,16 +24,14 @@ export const getMetrics = asyncHandler(async (req: Request, res: Response) => {
   }
 
   try {
-    const summary = await analyticsService.getAnalyticsSummary(
-      String(period) as any,
-    );
+    const summary = await analyticsService.getAnalyticsSummary(String(period) as AnalyticsPeriod);
 
     res.status(200).json({
       success: true,
       data: summary,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, getErrorMessage(err, 'Falha ao obter métricas'));
   }
 });
 
@@ -53,8 +57,8 @@ export const getApprovalRate = asyncHandler(async (req: Request, res: Response) 
       success: true,
       data: metrics,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, getErrorMessage(err, 'Falha ao obter taxa de aprovação'));
   }
 });
 
@@ -74,8 +78,8 @@ export const getByDepartment = asyncHandler(async (req: Request, res: Response) 
       success: true,
       data: metrics,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, getErrorMessage(err, 'Falha ao obter métricas por departamento'));
   }
 });
 
@@ -95,8 +99,8 @@ export const getBlocklistMetrics = asyncHandler(async (req: Request, res: Respon
       success: true,
       data: metrics,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, getErrorMessage(err, 'Falha ao obter métricas de blocklist'));
   }
 });
 
@@ -120,7 +124,7 @@ export const getHighValueTransactions = asyncHandler(async (req: Request, res: R
       success: true,
       data: metrics,
     });
-  } catch (err: any) {
-    throw new ErrorHandler(500, err.message);
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, getErrorMessage(err, 'Falha ao obter métricas de alto valor'));
   }
 });

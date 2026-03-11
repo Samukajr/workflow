@@ -3,11 +3,9 @@ import { verifyToken } from '../utils/jwt';
 import { UserToken } from '../types';
 import logger from '../utils/logger';
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: UserToken;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: UserToken;
   }
 }
 

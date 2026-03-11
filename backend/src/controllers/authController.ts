@@ -38,8 +38,9 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
         department: user.department,
       },
     });
-  } catch (err: any) {
-    throw new ErrorHandler(400, err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Falha ao registrar usuário';
+    throw new ErrorHandler(400, message);
   }
 });
 
@@ -66,8 +67,9 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
         department: user.department,
       },
     });
-  } catch (err: any) {
-    throw new ErrorHandler(401, err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Falha no login';
+    throw new ErrorHandler(401, message);
   }
 });
 

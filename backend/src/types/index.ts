@@ -18,6 +18,28 @@ export interface UserToken {
   department: 'financeiro' | 'validacao' | 'submissao' | 'admin' | 'superadmin';
 }
 
+export interface Supplier {
+  id: string;
+  supplier_name: string;
+  trade_name?: string;
+  supplier_type?: string;
+  document_raw: string;
+  document_normalized: string;
+  contact_name?: string;
+  contact_phone?: string;
+  company?: string;
+  city_state?: string;
+  status?: string;
+  bank_name?: string;
+  bank_branch?: string;
+  bank_account?: string;
+  source_file_name?: string;
+  is_active: boolean;
+  created_by?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 // Requisições de Pagamento
 export interface PaymentRequest {
   id: string;

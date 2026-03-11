@@ -23,6 +23,7 @@ import paymentRoutes from './routes/paymentRoutes';
 import analyticsRoutes from './routes/analyticsRoutes';
 import bankingRoutes from './routes/bankingRoutes';
 import lgpdRoutes from './routes/lgpdRoutes';
+import supplierRoutes from './routes/supplierRoutes';
 
 const app: Express = express();
 const uploadDir = path.isAbsolute(env.UPLOAD_DIR) ? env.UPLOAD_DIR : path.resolve(process.cwd(), env.UPLOAD_DIR);
@@ -183,6 +184,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/banking', bankingRoutes);
 app.use('/api/lgpd', lgpdRoutes);
+app.use('/api/suppliers', supplierRoutes);
 
 // ============= ERROR HANDLING =============
 

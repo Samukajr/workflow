@@ -109,28 +109,26 @@ workflow-pagamentos/
 │   ├── .env
 │   └── README.md
 │
-├── frontend/
-│   ├── src/
-│   │   ├── pages/           # Páginas (Login, Dashboard, etc)
-│   │   ├── components/      # Componentes reutilizáveis
-│   │   ├── services/        # Comunicação com API
-│   │   ├── store/           # Estado global (Jotai)
-│   │   ├── hooks/           # Custom hooks
-│   │   ├── types/           # Type definitions
-│   │   ├── utils/           # Helpers
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── vite.config.ts
-│   ├── index.html
-│   └── README.md
+├── packages/
+│   └── frontend/
+│       ├── src/
+│       │   ├── pages/           # Páginas (Login, Dashboard, etc)
+│       │   ├── components/      # Componentes reutilizáveis
+│       │   ├── services/        # Comunicação com API
+│       │   ├── store/           # Estado global (Zustand)
+│       │   ├── types/           # Type definitions
+│       │   ├── App.tsx
+│       │   └── main.tsx
+│       ├── package.json
+│       ├── tsconfig.json
+│       ├── vite.config.ts
+│       └── index.html
 │
 ├── docs/                    # Documentação
 ├── docker-compose.yml       # PostgreSQL + pgAdmin
-├── README.md               # Overview
-├── INSTALLATION.md         # Guia de instalação
-└── ARCHITECTURE.md         # Detalhes técnicos
+├── README.md                # Overview
+├── README_INICIO_RAPIDO.md  # Guia rápido operacional
+└── ARCHITECTURE.md          # Detalhes técnicos
 ```
 
 ## 🚀 Endpoints Principais
@@ -199,8 +197,8 @@ npm run lint         # Linting
 ## 📚 Documentação Adicional
 
 - **Backend README**: `backend/README.md`
-- **Frontend README**: `frontend/README.md`
-- **Installation Guide**: `INSTALLATION.md`
+- **Guia Rápido**: `README_INICIO_RAPIDO.md`
+- **Instalação detalhada**: `docs/INSTALACAO.md`
 - **API Docs**: http://localhost:3000/api-docs (quando rodando)
 
 ## 🔄 Próximas Fases

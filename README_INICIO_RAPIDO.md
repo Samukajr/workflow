@@ -105,8 +105,7 @@ npm run diagnose.js
 WORKFLOW/
 ├── backend/              # API (Express + TypeScript)
 ├── packages/
-│   ├── frontend/         # Interface (React)
-│   └── shared/           # Código compartilhado
+│   └── frontend/         # Interface (React)
 ├── docker-compose.yml    # Orquestração Docker
 ├── .env                  # Variáveis de ambiente
 └── docs/                 # Documentação

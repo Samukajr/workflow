@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuthStore } from '@/store/authStore'
 import { supplierService, type Supplier, type SupplierImportResult } from '../services/supplierService'
 
 function normalizeRole(role?: string): string {
   return (role || '').toUpperCase().trim()
+}
+
+function ModalPortal({ children }: { children: React.ReactNode }) {
+  return createPortal(children, document.body)
 }
 
 export default function SuppliersPage() {
@@ -203,6 +208,7 @@ export default function SuppliersPage() {
 
         <div className="flex gap-3">
           <button
+            type="button"
             onClick={() => void loadSuppliers()}
             className="rounded-lg border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
           >
@@ -210,6 +216,7 @@ export default function SuppliersPage() {
           </button>
           {canEditSupplier && (
             <button
+              type="button"
               onClick={() => setShowNewForm(true)}
               className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500"
             >
@@ -217,6 +224,7 @@ export default function SuppliersPage() {
             </button>
           )}
           <button
+            type="button"
             onClick={handleImportClick}
             disabled={importing}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
@@ -305,6 +313,7 @@ export default function SuppliersPage() {
               className="w-full rounded-lg border border-white/10 bg-slate-800 px-4 py-2 text-sm text-white outline-none placeholder:text-slate-500 md:w-96"
             />
             <button
+              type="button"
               onClick={() => void loadSuppliers(search)}
               className="rounded-lg border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
             >
@@ -393,6 +402,7 @@ export default function SuppliersPage() {
       </div>
 
       {showNewForm && (
+        <ModalPortal>
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-3xl rounded-xl border border-slate-700 bg-slate-900 p-6 overflow-y-auto max-h-[90vh]">
             <h2 className="text-2xl font-bold text-white">Novo Fornecedor</h2>
@@ -542,9 +552,11 @@ export default function SuppliersPage() {
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
 
       {editingSupplier && (
+        <ModalPortal>
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-3xl rounded-xl border border-slate-700 bg-slate-900 p-6">
             <h2 className="text-2xl font-bold text-white">Editar Fornecedor (Superadmin)</h2>
@@ -625,6 +637,7 @@ export default function SuppliersPage() {
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   )

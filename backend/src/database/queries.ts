@@ -37,6 +37,51 @@ export async function updateLastLogin(userId: string): Promise<void> {
   await pool.query('UPDATE users SET last_login = NOW() WHERE id = $1', [userId]);
 }
 
+export async function setUserTwoFactorSecret(userId: string, encryptedSecret: string): Promise<void> {
+  await pool.query(
+    `UPDATE users
+     SET two_factor_secret_encrypted = $1,
+         two_factor_enabled = false,
+         two_factor_backup_codes = NULL,
+         updated_at = NOW()
+     WHERE id = $2`,
+    [encryptedSecret, userId],
+  );
+}
+
+export async function enableUserTwoFactor(userId: string, backupCodesHash: string[]): Promise<void> {
+  await pool.query(
+    `UPDATE users
+     SET two_factor_enabled = true,
+         two_factor_backup_codes = $1,
+         updated_at = NOW()
+     WHERE id = $2`,
+    [backupCodesHash, userId],
+  );
+}
+
+export async function disableUserTwoFactor(userId: string): Promise<void> {
+  await pool.query(
+    `UPDATE users
+     SET two_factor_enabled = false,
+         two_factor_secret_encrypted = NULL,
+         two_factor_backup_codes = NULL,
+         updated_at = NOW()
+     WHERE id = $1`,
+    [userId],
+  );
+}
+
+export async function updateUserTwoFactorBackupCodes(userId: string, backupCodesHash: string[]): Promise<void> {
+  await pool.query(
+    `UPDATE users
+     SET two_factor_backup_codes = $1,
+         updated_at = NOW()
+     WHERE id = $2`,
+    [backupCodesHash, userId],
+  );
+}
+
 export async function getUsersByDepartment(department: string): Promise<User[]> {
   const result = await pool.query('SELECT * FROM users WHERE department = $1 AND is_active = true', [department]);
   return result.rows;
@@ -404,6 +449,16 @@ export async function addToBlocklist(
     [id, supplierDocument, supplierName, reason, blockedBy]
   );
   return result.rows[0];
+}
+
+export async function listSupplierBlocklist(): Promise<SupplierBlocklist[]> {
+  const result = await pool.query(
+    `SELECT id, supplier_document, supplier_name, reason, blocked_by, is_active, created_at, removed_at
+     FROM supplier_blocklist
+     ORDER BY created_at DESC`,
+  );
+
+  return result.rows;
 }
 
 export async function markPaymentAsBlocklisted(

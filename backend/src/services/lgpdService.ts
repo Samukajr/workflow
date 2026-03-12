@@ -13,9 +13,25 @@ export interface LGPDConsent {
 export interface DataDeletionRequest {
   id: string;
   user_id: string;
+  reason?: string;
   status: string;
   request_date: string;
+  authorized_by?: string | null;
+  updated_at?: string;
   completed_at: string | null;
+}
+
+export interface PersonalDataAuditEntry {
+  id: string;
+  action: string;
+  data_type: string;
+  old_value: string | null;
+  new_value: string | null;
+  reason: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  performed_by: string | null;
+  created_at: string;
 }
 
 /**
@@ -27,17 +43,36 @@ export async function recordConsent(
   ipAddress: string,
   userAgent: string,
 ): Promise<LGPDConsent> {
-  const id = uuidv4();
-
   const result = await pool.query(
-    `INSERT INTO lgpd_consents (id, user_id, consent_type, ip_address, user_agent)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO lgpd_consents (id, user_id, consent_type, ip_address, user_agent, revoked_at)
+     VALUES ($1, $2, $3, $4, $5, NULL)
+     ON CONFLICT (user_id, consent_type)
+     DO UPDATE SET
+       revoked_at = NULL,
+       ip_address = EXCLUDED.ip_address,
+       user_agent = EXCLUDED.user_agent,
+       updated_at = NOW()
      RETURNING id, user_id, consent_type, given_at, revoked_at`,
-    [id, userId, consentType, ipAddress, userAgent],
+    [uuidv4(), userId, consentType, ipAddress, userAgent],
   );
 
   logger.info(`Consentimento LGPD registrado: ${consentType} para usuário ${userId}`);
   return result.rows[0];
+}
+
+/**
+ * Listar consentimentos do próprio usuário
+ */
+export async function getUserConsents(userId: string): Promise<LGPDConsent[]> {
+  const result = await pool.query(
+    `SELECT id, user_id, consent_type, given_at, revoked_at
+     FROM lgpd_consents
+     WHERE user_id = $1
+     ORDER BY given_at DESC`,
+    [userId],
+  );
+
+  return result.rows;
 }
 
 /**
@@ -80,6 +115,21 @@ export async function getPendingDeletionRequests(): Promise<DataDeletionRequest[
      FROM data_deletion_requests
      WHERE status = 'pending'
      ORDER BY request_date DESC`,
+  );
+
+  return result.rows;
+}
+
+/**
+ * Listar requisições de deleção do próprio usuário
+ */
+export async function getUserDeletionRequests(userId: string): Promise<DataDeletionRequest[]> {
+  const result = await pool.query(
+    `SELECT id, user_id, reason, status, request_date, authorized_by, updated_at, completed_at
+     FROM data_deletion_requests
+     WHERE user_id = $1
+     ORDER BY request_date DESC`,
+    [userId],
   );
 
   return result.rows;
@@ -151,9 +201,9 @@ export async function exportPersonalData(userId: string): Promise<string> {
 /**
  * Obter histórico de processamento de dados (auditoria LGPD)
  */
-export async function getPersonalDataAudit(userId: string): Promise<Record<string, unknown>[]> {
+export async function getPersonalDataAudit(userId: string): Promise<PersonalDataAuditEntry[]> {
   const result = await pool.query(
-    `SELECT action, data_type, old_value, new_value, reason, performed_by, created_at
+    `SELECT id, action, data_type, old_value, new_value, reason, ip_address, user_agent, performed_by, created_at
      FROM personal_data_audit
      WHERE user_id = $1
      ORDER BY created_at DESC

@@ -268,53 +268,27 @@ E:\APP\WORKFLOW\
 │   ├── .eslintrc.json
 │   └── README.md
 │
-├── frontend/                         # Aplicação React + Vite
+├── packages/frontend/                # Aplicação React + Vite
 │   ├── src/
 │   │   ├── main.tsx                 # Entrada React
 │   │   ├── App.tsx                  # Roteamento principal
 │   │   ├── index.css                # Estilos globais
-│   │   │
-│   │   ├── pages/
-│   │   │   ├── LoginPage.tsx        # Login
-│   │   │   ├── DashboardPage.tsx    # Dashboard
-│   │   │   └── SubmitPaymentPage.tsx# Submeter pagamento
-│   │   │
-│   │   ├── components/
-│   │   │   ├── Header.tsx           # Cabeçalho
-│   │   │   ├── Sidebar.tsx          # Navegação
-│   │   │   ├── ProtectedRoute.tsx   # Guard de rotas
-│   │   │   └── ...
-│   │   │
-│   │   ├── services/
-│   │   │   ├── api.ts               # Cliente Axios
-│   │   │   ├── authService.ts       # Chamadas auth
-│   │   │   └── paymentService.ts    # Chamadas payments
-│   │   │
-│   │   ├── store/
-│   │   │   └── index.ts             # Estado global (Jotai)
-│   │   │
-│   │   ├── hooks/
-│   │   │   └── useAuth.ts           # Custom hook auth
-│   │   │
-│   │   ├── types/
-│   │   │   └── index.ts             # TypeScript interfaces
-│   │   │
-│   │   └── utils/
-│   │       └── ...
-│   │
+│   │   ├── pages/                   # Páginas
+│   │   ├── components/              # Componentes reutilizáveis
+│   │   ├── services/                # Cliente HTTP e serviços
+│   │   ├── store/                   # Estado global (Zustand)
+│   │   └── types/                   # Tipos TypeScript
 │   ├── package.json
 │   ├── tsconfig.json
 │   ├── vite.config.ts
 │   ├── postcss.config.js
 │   ├── tailwind.config.js
 │   ├── index.html
-│   ├── .eslintrc.json
-│   └── README.md
+│   └── .eslintrc.json
 │
-├── docker-compose.yml               # Docker Compose (PostgreSQL)
+├── docker-compose.yml                # Docker Compose (PostgreSQL)
 ├── README.md                         # Overview
-├── INSTALLATION.md                   # Guia de instalação
-├── QUICK_START.md                    # Quick start
+├── README_INICIO_RAPIDO.md           # Guia operacional
 ├── PROJECT_SUMMARY.md                # Sumário técnico
 └── ARCHITECTURE.md                   # Este arquivo
 ```

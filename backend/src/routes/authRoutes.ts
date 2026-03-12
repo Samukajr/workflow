@@ -50,6 +50,7 @@ router.post('/register', authMiddleware, requireSuperadmin, authController.regis
  *                 type: string
  */
 router.post('/login', authController.login);
+router.post('/login/2fa', authController.loginWithTwoFactor);
 
 /**
  * @swagger
@@ -61,6 +62,10 @@ router.post('/login', authController.login);
  *       - bearerAuth: []
  */
 router.get('/me', authMiddleware, authController.me);
+router.get('/2fa/status', authMiddleware, authController.getTwoFactorStatus);
+router.post('/2fa/setup', authMiddleware, authController.setupTwoFactor);
+router.post('/2fa/verify-setup', authMiddleware, authController.verifyTwoFactorSetup);
+router.post('/2fa/disable', authMiddleware, authController.disableTwoFactor);
 
 /**
  * @swagger

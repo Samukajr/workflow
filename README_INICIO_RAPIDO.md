@@ -1,19 +1,8 @@
 # 🚀 Workflow de Pagamentos - Sistema de Validação e Pagamento de Notas Fiscais
 
-## ⚡ Comece Aqui
+## ⚡ Início Rápido
 
-👉 **Leia primeiro:** [COMECE_AQUI.md](COMECE_AQUI.md)
-
----
-
-## 📋 Guias Disponíveis
-
-| Guia | Descrição |
-|------|-----------|
-| **[COMECE_AQUI.md](COMECE_AQUI.md)** | ⭐ **COMECE POR AQUI** - Passo a passo completo para iniciar o sistema |
-| **[ERRO_404_COMO_RESOLVER.md](ERRO_404_COMO_RESOLVER.md)** | Se receber erro 404 ao tentar fazer login |
-| **[GUIA_RESOLVER_LOGIN.md](GUIA_RESOLVER_LOGIN.md)** | Resolução de problemas de login |
-| **[SETUP_GUIDE.md](SETUP_GUIDE.md)** | Configuração completa do ambiente |
+Siga os 3 passos abaixo na ordem correta para ter o sistema rodando localmente.
 
 ---
 
@@ -68,6 +57,21 @@ Todos com senha: **`DemoPass@123`**
 
 ---
 
+## 🛡️ Segurança da Conta (2FA)
+
+Após login, você pode habilitar autenticação em dois fatores:
+
+1. Acesse **Privacidade e Segurança** no menu lateral.
+2. Entre na aba **Segurança (2FA)**.
+3. Clique em **Iniciar Configuração 2FA**.
+4. Escaneie o QR code no app autenticador (Google Authenticator, Microsoft Authenticator, Authy etc.).
+5. Informe o código gerado para confirmar.
+6. Guarde os **backup codes** em local seguro (uso único).
+
+Com 2FA ativo, o login passa a exigir senha + código do autenticador (ou backup code).
+
+---
+
 ## 🔍 Verificar Instalação
 
 ```bash
@@ -105,8 +109,7 @@ npm run diagnose.js
 WORKFLOW/
 ├── backend/              # API (Express + TypeScript)
 ├── packages/
-│   ├── frontend/         # Interface (React)
-│   └── shared/           # Código compartilhado
+│   └── frontend/         # Interface (React)
 ├── docker-compose.yml    # Orquestração Docker
 ├── .env                  # Variáveis de ambiente
 └── docs/                 # Documentação
@@ -179,6 +182,8 @@ npm run migrate
 - [API Documentation](docs/API.md)
 - [Arquitetura](docs/ARQUITETURA.md)
 - [Segurança LGPD](docs/LGPD.md)
+- [Política de Privacidade](docs/POLITICA_PRIVACIDADE.md)
+- [Termos de Uso](docs/TERMOS_DE_USO.md)
 - [Como Contribuir](docs/CONTRIBUICAO.md)
 
 ---
@@ -187,9 +192,9 @@ npm run migrate
 
 Para dúvidas ou problemas:
 
-1. Verifique [COMECE_AQUI.md](COMECE_AQUI.md)
-2. Consulte [ERRO_404_COMO_RESOLVER.md](ERRO_404_COMO_RESOLVER.md)
-3. Revise os logs dos terminais
+1. Revise os logs dos terminais
+2. Verifique se o PostgreSQL está rodando: `docker-compose ps`
+3. Verifique se o backend está ativo na porta 3000
 4. Limpe cache do navegador (Ctrl+Shift+Delete)
 5. Reinicie os serviços
 
@@ -199,7 +204,6 @@ Para dúvidas ou problemas:
 
 - [ ] Docker Desktop instalado
 - [ ] Node.js 18+ instalado
-- [ ] Leu [COMECE_AQUI.md](COMECE_AQUI.md)
 - [ ] PostgreSQL rodando (`docker-compose up -d`)
 - [ ] Backend iniciado (`npm run dev`)
 - [ ] Frontend iniciado (`npm run dev`)
@@ -208,4 +212,4 @@ Para dúvidas ou problemas:
 
 ---
 
-**Pronto para começar? → [COMECE_AQUI.md](COMECE_AQUI.md)** ✅
+**Documentação completa → [docs/](docs/)** ✅

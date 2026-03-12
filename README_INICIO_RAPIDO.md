@@ -167,6 +167,8 @@ npm run migrate
 - [API Documentation](docs/API.md)
 - [Arquitetura](docs/ARQUITETURA.md)
 - [Segurança LGPD](docs/LGPD.md)
+- [Política de Privacidade](docs/POLITICA_PRIVACIDADE.md)
+- [Termos de Uso](docs/TERMOS_DE_USO.md)
 - [Como Contribuir](docs/CONTRIBUICAO.md)
 
 ---

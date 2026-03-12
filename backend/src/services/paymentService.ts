@@ -364,15 +364,31 @@ export async function addSupplierToBlocklist(
   reason: string,
   blockedBy: string,
 ): Promise<void> {
-  await queries.addToBlocklist(supplierDocument, supplierName, reason, blockedBy);
+  const normalizedDocument = supplierDocument.replace(/\D/g, '');
+
+  if (!normalizedDocument) {
+    throw new Error('Documento do fornecedor inválido');
+  }
+
+  const existingBlock = await queries.checkSupplierBlocklist(normalizedDocument);
+
+  if (existingBlock) {
+    throw new Error('Fornecedor já está bloqueado na blocklist');
+  }
+
+  await queries.addToBlocklist(normalizedDocument, supplierName, reason, blockedBy);
 
   await queries.createAuditLog(blockedBy, 'FORNECEDOR_BLOQUEADO', 'supplier_blocklist', null, {
-    supplier_document: supplierDocument,
+    supplier_document: normalizedDocument,
     supplier_name: supplierName,
     reason,
   });
 
-  logger.info(`Fornecedor ${supplierName} (${supplierDocument}) adicionado à blocklist por ${blockedBy}`);
+  logger.info(`Fornecedor ${supplierName} (${normalizedDocument}) adicionado à blocklist por ${blockedBy}`);
+}
+
+export async function getSupplierBlocklist() {
+  return queries.listSupplierBlocklist();
 }
 
 export async function getPaymentChecklist(paymentRequestId: string) {

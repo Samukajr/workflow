@@ -406,6 +406,16 @@ export async function addToBlocklist(
   return result.rows[0];
 }
 
+export async function listSupplierBlocklist(): Promise<SupplierBlocklist[]> {
+  const result = await pool.query(
+    `SELECT id, supplier_document, supplier_name, reason, blocked_by, is_active, created_at, removed_at
+     FROM supplier_blocklist
+     ORDER BY created_at DESC`,
+  );
+
+  return result.rows;
+}
+
 export async function markPaymentAsBlocklisted(
   id: string,
   reason: string

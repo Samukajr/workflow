@@ -447,8 +447,12 @@ function LgpdPage() {
           <strong>⚖️ Legislação aplicável:</strong> Lei Geral de Proteção de Dados Pessoais (LGPD - Lei 13.709/2018)
         </p>
         <p className="mt-2">
-          Para mais informações sobre como seus dados são processados, consulte nossa Política de Privacidade e Termos de Uso na pasta de documentação do projeto.
+          Documentos oficiais do produto: Política de Privacidade e Termos de Uso (versão vigente em <strong>docs/</strong> do projeto).
         </p>
+        <ul className="mt-3 list-disc list-inside space-y-1">
+          <li>docs/POLITICA_PRIVACIDADE.md</li>
+          <li>docs/TERMOS_DE_USO.md</li>
+        </ul>
       </div>
     </div>
   );

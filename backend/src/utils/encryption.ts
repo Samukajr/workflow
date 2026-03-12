@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 import logger from './logger';
+import { env } from '../config/environment';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-change-in-production-96-chars-minimum';
+const ENCRYPTION_KEY = env.ENCRYPTION_KEY;
 const ALGORITHM = 'aes-256-gcm';
 
 /**
@@ -77,6 +78,11 @@ export function verifyWebhookSignature(
   secret: string,
 ): boolean {
   const expected = generateWebhookSignature(payload, secret);
+
+  if (signature.length !== expected.length) {
+    return false;
+  }
+
   return crypto.timingSafeEqual(
     Buffer.from(signature),
     Buffer.from(expected),

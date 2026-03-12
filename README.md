@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-Sistema completo para gerenciamento de fluxo de requisições de pagamento com validação de notas fiscais e boletos, atendendo LGPD e legislações brasileiras.
+Sistema completo para gerenciamento de fluxo de requisições de pagamento com validação de notas fiscais e boletos, com controles técnicos de segurança e privacidade para suporte à conformidade LGPD e legislação brasileira aplicável.
 
 ## Arquitetura
 
@@ -62,6 +62,12 @@ Sistema completo para gerenciamento de fluxo de requisições de pagamento com v
 - Criptografia de senhas com bcrypt
 - Expiração de tokens JWT
 - Backup de dados
+
+## Documentação Legal e Compliance
+
+- Política de Privacidade: [docs/POLITICA_PRIVACIDADE.md](docs/POLITICA_PRIVACIDADE.md)
+- Termos de Uso: [docs/TERMOS_DE_USO.md](docs/TERMOS_DE_USO.md)
+- Resumo LGPD técnico: [docs/LGPD.md](docs/LGPD.md)
 
 ## Credenciais de Demonstração
 

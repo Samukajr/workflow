@@ -1,7 +1,11 @@
 # 🔒 Conformidade e Segurança do Sistema WORKFLOW
 
 **Data**: 4 de março de 2026  
-**Status**: ✅ Implementado
+**Status**: ✅ Controles técnicos implementados
+
+Documentos legais oficiais do projeto:
+- Política de Privacidade: [docs/POLITICA_PRIVACIDADE.md](docs/POLITICA_PRIVACIDADE.md)
+- Termos de Uso: [docs/TERMOS_DE_USO.md](docs/TERMOS_DE_USO.md)
 
 ---
 
@@ -230,4 +234,6 @@ Para dúvidas sobre conformidade:
 
 ---
 
-**✅ Sistema pronto para produção com conformidade legal brasileira.**
+**✅ Sistema com controles técnicos de segurança e privacidade implementados.**
+
+Aviso: este documento é técnico-operacional e não substitui validação jurídica específica por cliente/contrato.

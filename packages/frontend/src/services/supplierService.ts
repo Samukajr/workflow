@@ -48,6 +48,22 @@ export const supplierService = {
     })
   },
 
+  async updateSupplier(id: string, data: {
+    supplier_name?: string
+    trade_name?: string
+    supplier_type?: string
+    contact_name?: string
+    contact_phone?: string
+    company?: string
+    city_state?: string
+    status?: string
+    bank_name?: string
+    bank_branch?: string
+    bank_account?: string
+  }) {
+    return apiClient.request<{ success: boolean; message: string; data: Supplier }>('PATCH', `/suppliers/${id}`, data)
+  },
+
   async importSpreadsheet(file: File) {
     const formData = new FormData()
     formData.append('file', file)
@@ -55,5 +71,22 @@ export const supplierService = {
       '/suppliers/import',
       formData,
     )
+  },
+
+  async createSupplier(data: {
+    supplier_name: string
+    trade_name?: string
+    supplier_type?: string
+    document_raw: string
+    contact_name?: string
+    contact_phone?: string
+    company?: string
+    city_state?: string
+    status?: string
+    bank_name?: string
+    bank_branch?: string
+    bank_account?: string
+  }) {
+    return apiClient.request<{ success: boolean; message: string; data: Supplier }>('POST', '/suppliers', data)
   },
 }

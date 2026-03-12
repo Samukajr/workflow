@@ -11,12 +11,31 @@ export default function SuppliersPage() {
   const { user } = useAuthStore()
   const role = normalizeRole(user?.tipo || user?.departamento)
   const canManageSuppliers = role === 'ADMIN' || role === 'SUPERADMIN' || role === 'SUPER_ADMIN'
+  const canEditSupplier = role === 'SUPERADMIN' || role === 'SUPER_ADMIN'
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [importing, setImporting] = useState(false)
   const [updatingSupplierId, setUpdatingSupplierId] = useState<string | null>(null)
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [showNewForm, setShowNewForm] = useState(false)
+  const [savingNew, setSavingNew] = useState(false)
+  const [newForm, setNewForm] = useState({
+    supplier_name: '',
+    trade_name: '',
+    supplier_type: '',
+    document_raw: '',
+    contact_name: '',
+    contact_phone: '',
+    company: '',
+    city_state: '',
+    status: 'Ativo',
+    bank_name: '',
+    bank_branch: '',
+    bank_account: '',
+  })
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [importResult, setImportResult] = useState<SupplierImportResult | null>(null)
@@ -85,6 +104,86 @@ export default function SuppliersPage() {
     }
   }
 
+  const handleCreateSupplier = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    try {
+      setSavingNew(true)
+      setError('')
+      setMessage('')
+
+      const response = await supplierService.createSupplier({
+        ...newForm,
+        trade_name: newForm.trade_name || undefined,
+        supplier_type: newForm.supplier_type || undefined,
+        contact_name: newForm.contact_name || undefined,
+        contact_phone: newForm.contact_phone || undefined,
+        company: newForm.company || undefined,
+        city_state: newForm.city_state || undefined,
+        bank_name: newForm.bank_name || undefined,
+        bank_branch: newForm.bank_branch || undefined,
+        bank_account: newForm.bank_account || undefined,
+      })
+
+      setSuppliers((current) => [response.data, ...current])
+      setMessage(response.message)
+      setShowNewForm(false)
+      setNewForm({
+        supplier_name: '',
+        trade_name: '',
+        supplier_type: '',
+        document_raw: '',
+        contact_name: '',
+        contact_phone: '',
+        company: '',
+        city_state: '',
+        status: 'Ativo',
+        bank_name: '',
+        bank_branch: '',
+        bank_account: '',
+      })
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Erro ao cadastrar fornecedor')
+    } finally {
+      setSavingNew(false)
+    }
+  }
+
+  const handleSaveSupplierEdit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!editingSupplier) return
+
+    try {
+      setSavingEdit(true)
+      setError('')
+      setMessage('')
+
+      const response = await supplierService.updateSupplier(editingSupplier.id, {
+        supplier_name: editingSupplier.supplier_name,
+        trade_name: editingSupplier.trade_name,
+        supplier_type: editingSupplier.supplier_type,
+        contact_name: editingSupplier.contact_name,
+        contact_phone: editingSupplier.contact_phone,
+        company: editingSupplier.company,
+        city_state: editingSupplier.city_state,
+        status: editingSupplier.status,
+        bank_name: editingSupplier.bank_name,
+        bank_branch: editingSupplier.bank_branch,
+        bank_account: editingSupplier.bank_account,
+      })
+
+      setSuppliers((current) =>
+        current.map((entry) => (entry.id === editingSupplier.id ? response.data : entry)),
+      )
+      setMessage(response.message)
+      setEditingSupplier(null)
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Erro ao salvar cadastro do fornecedor')
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
   if (!canManageSuppliers) {
     return (
       <div className="rounded-xl border border-red-400/40 bg-red-500/10 p-6 text-red-100">
@@ -109,6 +208,14 @@ export default function SuppliersPage() {
           >
             Atualizar Lista
           </button>
+          {canEditSupplier && (
+            <button
+              onClick={() => setShowNewForm(true)}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500"
+            >
+              + Novo Fornecedor
+            </button>
+          )}
           <button
             onClick={handleImportClick}
             disabled={importing}
@@ -253,18 +360,29 @@ export default function SuppliersPage() {
                       </div>
                     </td>
                     <td className="px-3 py-3">
-                      <button
-                        type="button"
-                        onClick={() => void handleToggleSupplier(supplier)}
-                        disabled={updatingSupplierId === supplier.id}
-                        className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${supplier.is_active ? 'bg-rose-500/15 text-rose-300 hover:bg-rose-500/25' : 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'} disabled:cursor-not-allowed disabled:opacity-60`}
-                      >
-                        {updatingSupplierId === supplier.id
-                          ? 'Salvando...'
-                          : supplier.is_active
-                            ? 'Bloquear no Sistema'
-                            : 'Reativar'}
-                      </button>
+                      <div className="flex flex-col gap-2">
+                        {canEditSupplier && (
+                          <button
+                            type="button"
+                            onClick={() => setEditingSupplier(supplier)}
+                            className="rounded-lg bg-indigo-600/20 px-3 py-2 text-xs font-semibold text-indigo-300 ring-1 ring-indigo-500/40 transition hover:bg-indigo-600/40"
+                          >
+                            Editar Cadastro
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => void handleToggleSupplier(supplier)}
+                          disabled={updatingSupplierId === supplier.id}
+                          className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${supplier.is_active ? 'bg-rose-500/15 text-rose-300 hover:bg-rose-500/25' : 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'} disabled:cursor-not-allowed disabled:opacity-60`}
+                        >
+                          {updatingSupplierId === supplier.id
+                            ? 'Salvando...'
+                            : supplier.is_active
+                              ? 'Bloquear no Sistema'
+                              : 'Reativar'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -273,6 +391,241 @@ export default function SuppliersPage() {
           </div>
         )}
       </div>
+
+      {showNewForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-3xl rounded-xl border border-slate-700 bg-slate-900 p-6 overflow-y-auto max-h-[90vh]">
+            <h2 className="text-2xl font-bold text-white">Novo Fornecedor</h2>
+            <p className="mt-1 text-sm text-slate-300">Preencha os dados para cadastrar manualmente um fornecedor. Acesso restrito a superadmin.</p>
+
+            <form className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleCreateSupplier}>
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm text-slate-300">Fornecedor <span className="text-rose-400">*</span></label>
+                <input
+                  value={newForm.supplier_name}
+                  onChange={(e) => setNewForm({ ...newForm, supplier_name: e.target.value })}
+                  placeholder="Razão social"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Nome Fantasia</label>
+                <input
+                  value={newForm.trade_name}
+                  onChange={(e) => setNewForm({ ...newForm, trade_name: e.target.value })}
+                  placeholder="Nome fantasia"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">CPF / CNPJ <span className="text-rose-400">*</span></label>
+                <input
+                  value={newForm.document_raw}
+                  onChange={(e) => setNewForm({ ...newForm, document_raw: e.target.value })}
+                  placeholder="00.000.000/0001-00"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Tipo de Fornecedor</label>
+                <input
+                  value={newForm.supplier_type}
+                  onChange={(e) => setNewForm({ ...newForm, supplier_type: e.target.value })}
+                  placeholder="Ex: Materiais, Medicamentos"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Empresa</label>
+                <input
+                  value={newForm.company}
+                  onChange={(e) => setNewForm({ ...newForm, company: e.target.value })}
+                  placeholder="Empresa vinculada"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Nome de Contato</label>
+                <input
+                  value={newForm.contact_name}
+                  onChange={(e) => setNewForm({ ...newForm, contact_name: e.target.value })}
+                  placeholder="Nome do responsável"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Telefone de Contato</label>
+                <input
+                  value={newForm.contact_phone}
+                  onChange={(e) => setNewForm({ ...newForm, contact_phone: e.target.value })}
+                  placeholder="+55 11 99999-9999"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Cidade / Estado</label>
+                <input
+                  value={newForm.city_state}
+                  onChange={(e) => setNewForm({ ...newForm, city_state: e.target.value })}
+                  placeholder="São Paulo - SP"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Banco</label>
+                <input
+                  value={newForm.bank_name}
+                  onChange={(e) => setNewForm({ ...newForm, bank_name: e.target.value })}
+                  placeholder="Nome do banco"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Agência</label>
+                <input
+                  value={newForm.bank_branch}
+                  onChange={(e) => setNewForm({ ...newForm, bank_branch: e.target.value })}
+                  placeholder="0001"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Conta Bancária</label>
+                <input
+                  value={newForm.bank_account}
+                  onChange={(e) => setNewForm({ ...newForm, bank_account: e.target.value })}
+                  placeholder="00000-0"
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Status inicial</label>
+                <select
+                  value={newForm.status}
+                  onChange={(e) => setNewForm({ ...newForm, status: e.target.value })}
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white"
+                >
+                  <option value="Ativo">Ativo</option>
+                  <option value="Inativo">Inativo</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowNewForm(false)}
+                  className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingNew}
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-60"
+                >
+                  {savingNew ? 'Cadastrando...' : 'Cadastrar Fornecedor'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingSupplier && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-3xl rounded-xl border border-slate-700 bg-slate-900 p-6">
+            <h2 className="text-2xl font-bold text-white">Editar Fornecedor (Superadmin)</h2>
+            <p className="mt-1 text-sm text-slate-300">Atualize contato, nome e dados bancários do fornecedor selecionado.</p>
+
+            <form className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSaveSupplierEdit}>
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm text-slate-300">Fornecedor</label>
+                <input
+                  value={editingSupplier.supplier_name}
+                  onChange={(event) => setEditingSupplier({ ...editingSupplier, supplier_name: event.target.value })}
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Nome de Contato</label>
+                <input
+                  value={editingSupplier.contact_name || ''}
+                  onChange={(event) => setEditingSupplier({ ...editingSupplier, contact_name: event.target.value })}
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Telefone de Contato</label>
+                <input
+                  value={editingSupplier.contact_phone || ''}
+                  onChange={(event) => setEditingSupplier({ ...editingSupplier, contact_phone: event.target.value })}
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Banco</label>
+                <input
+                  value={editingSupplier.bank_name || ''}
+                  onChange={(event) => setEditingSupplier({ ...editingSupplier, bank_name: event.target.value })}
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-300">Agência</label>
+                <input
+                  value={editingSupplier.bank_branch || ''}
+                  onChange={(event) => setEditingSupplier({ ...editingSupplier, bank_branch: event.target.value })}
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm text-slate-300">Conta Bancária</label>
+                <input
+                  value={editingSupplier.bank_account || ''}
+                  onChange={(event) => setEditingSupplier({ ...editingSupplier, bank_account: event.target.value })}
+                  className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-white"
+                />
+              </div>
+
+              <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingSupplier(null)}
+                  className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60"
+                >
+                  {savingEdit ? 'Salvando...' : 'Salvar Alterações'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

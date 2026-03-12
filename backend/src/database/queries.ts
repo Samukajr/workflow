@@ -122,6 +122,33 @@ export async function getAllPaymentRequests(limit = 50, offset = 0): Promise<Pay
   return result.rows;
 }
 
+export async function getPaymentRequestsReadyForPayment(limit = 50, offset = 0): Promise<Array<PaymentRequest & {
+  bank_name: string | null;
+  bank_branch: string | null;
+  bank_account: string | null;
+  supplier_status: string | null;
+}>> {
+  const result = await pool.query(
+    `SELECT
+       pr.*,
+       s.bank_name,
+       s.bank_branch,
+       s.bank_account,
+       s.status AS supplier_status
+     FROM payment_requests pr
+     LEFT JOIN suppliers s
+       ON COALESCE(
+            NULLIF(regexp_replace(pr.supplier_document, '\\D', '', 'g'), ''),
+            UPPER(regexp_replace(pr.supplier_document, '[^0-9A-Za-z]', '', 'g'))
+          ) = s.document_normalized
+     WHERE pr.status = 'validado'
+     ORDER BY pr.created_at DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset],
+  );
+  return result.rows;
+}
+
 export async function updatePaymentRequestStatus(id: string, status: string): Promise<PaymentRequest> {
   const result = await pool.query(
     'UPDATE payment_requests SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',

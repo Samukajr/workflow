@@ -275,6 +275,101 @@ export async function updateSupplierStatus(id: string, isActive: boolean): Promi
   return result.rows[0] || null;
 }
 
+export type SupplierUpdatePayload = {
+  supplier_name?: string;
+  trade_name?: string;
+  supplier_type?: string;
+  contact_name?: string;
+  contact_phone?: string;
+  company?: string;
+  city_state?: string;
+  status?: string;
+  bank_name?: string;
+  bank_branch?: string;
+  bank_account?: string;
+};
+
+export async function updateSupplierDetails(
+  id: string,
+  payload: SupplierUpdatePayload,
+): Promise<Supplier | null> {
+  const fields = Object.entries(payload).filter(([, value]) => value !== undefined);
+
+  if (fields.length === 0) {
+    const current = await pool.query('SELECT * FROM suppliers WHERE id = $1 LIMIT 1', [id]);
+    return current.rows[0] || null;
+  }
+
+  const setClauses = fields.map(([key], index) => `${key} = $${index + 2}`);
+  setClauses.push('updated_at = CURRENT_TIMESTAMP');
+  const values = fields.map(([, value]) => (value === '' ? null : value));
+
+  const result = await pool.query(
+    `UPDATE suppliers
+     SET ${setClauses.join(', ')}
+     WHERE id = $1
+     RETURNING *`,
+    [id, ...values],
+  );
+
+  return result.rows[0] || null;
+}
+
+export interface SupplierCreatePayload {
+  supplier_name: string;
+  trade_name?: string;
+  supplier_type?: string;
+  document_raw: string;
+  contact_name?: string;
+  contact_phone?: string;
+  company?: string;
+  city_state?: string;
+  status?: string;
+  bank_name?: string;
+  bank_branch?: string;
+  bank_account?: string;
+}
+
+export async function createSupplierManual(
+  payload: SupplierCreatePayload,
+  createdBy: string,
+): Promise<Supplier> {
+  const documentNormalized = normalizeDocument(payload.document_raw);
+
+  const result = await pool.query(
+    `INSERT INTO suppliers (
+      supplier_name, trade_name, supplier_type,
+      document_raw, document_normalized,
+      contact_name, contact_phone,
+      company, city_state, status,
+      bank_name, bank_branch, bank_account,
+      source_file_name, is_active, created_by
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+    ) RETURNING *`,
+    [
+      payload.supplier_name.trim(),
+      payload.trade_name || null,
+      payload.supplier_type || null,
+      payload.document_raw.trim(),
+      documentNormalized,
+      payload.contact_name || null,
+      payload.contact_phone || null,
+      payload.company || null,
+      payload.city_state || null,
+      payload.status || 'Ativo',
+      payload.bank_name || null,
+      payload.bank_branch || null,
+      payload.bank_account || null,
+      'manual',
+      true,
+      createdBy,
+    ],
+  );
+
+  return result.rows[0] as Supplier;
+}
+
 export async function importSuppliersFromSpreadsheet(
   fileBuffer: Buffer,
   originalFileName: string,

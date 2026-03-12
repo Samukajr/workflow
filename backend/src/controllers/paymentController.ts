@@ -250,6 +250,26 @@ export const listPaymentRequests = asyncHandler(async (req: Request, res: Respon
   }
 });
 
+export const listReadyForPayment = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ErrorHandler(401, 'Não autenticado');
+  }
+
+  const { limit = 50, offset = 0 } = req.query;
+
+  try {
+    const requests = await queries.getPaymentRequestsReadyForPayment(Number(limit), Number(offset));
+
+    res.status(200).json({
+      success: true,
+      data: requests,
+      pagination: { limit: Number(limit), offset: Number(offset) },
+    });
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
+  }
+});
+
 export const getDashboard = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new ErrorHandler(401, 'Não autenticado');

@@ -25,46 +25,35 @@ O Workflow de Pagamentos é um sistema moderno desenvolvido com arquitetura em c
 
 ```
 workflow/
-├── packages/
-│   ├── backend/                 # API REST principal
-│   │   ├── src/
-│   │   │   ├── index.ts        # Entry point
-│   │   │   ├── config/         # Configurações (DB, JWT, etc)
-│   │   │   ├── middleware/     # Express middleware
-│   │   │   ├── routes/         # Rotas da API
-│   │   │   ├── controllers/    # Lógica de requisições
-│   │   │   ├── services/       # Lógica de negócios
-│   │   │   ├── models/         # Tipos e interfaces
-│   │   │   ├── utils/          # Funções auxiliares
-│   │   │   └── types/          # Tipos TypeScript
-│   │   ├── prisma/
-│   │   │   ├── schema.prisma   # Schema do banco
-│   │   │   └── migrations/     # Histórico de migrações
-│   │   ├── package.json
-│   │   ├── tsconfig.json
-│   │   └── Dockerfile
-│   │
-│   ├── frontend/                # Aplicação React
-│   │   ├── src/
-│   │   │   ├── components/     # Componentes reutilizáveis
-│   │   │   ├── pages/          # Páginas da aplicação
-│   │   │   ├── store/          # Estado global (Zustand)
-│   │   │   ├── hooks/          # Custom hooks
-│   │   │   ├── services/       # Chamadas à API
-│   │   │   ├── types/          # Tipos TypeScript
-│   │   │   ├── utils/          # Funções auxiliares
-│   │   │   ├── App.tsx         # Componente principal
-│   │   │   ├── main.tsx        # Entry point
-│   │   │   └── index.css       # Estilos globais
-│   │   ├── index.html
-│   │   ├── vite.config.ts
-│   │   ├── tailwind.config.js
-│   │   ├── package.json
-│   │   └── tsconfig.json
-│   │
-│   └── shared/                  # Código compartilhado
-│       └── src/
-│           └── types/          # Tipos TypeScript comuns
+├── backend/                     # API REST principal
+│   ├── src/
+│   │   ├── server.ts           # Entry point
+│   │   ├── config/             # Configurações (DB, JWT, etc)
+│   │   ├── middleware/         # Express middleware
+│   │   ├── routes/             # Rotas da API
+│   │   ├── controllers/        # Lógica de requisições
+│   │   ├── services/           # Lógica de negócios
+│   │   ├── utils/              # Funções auxiliares
+│   │   └── types/              # Tipos TypeScript
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── Dockerfile
+│
+├── packages/frontend/           # Aplicação React
+│   ├── src/
+│   │   ├── components/          # Componentes reutilizáveis
+│   │   ├── pages/               # Páginas da aplicação
+│   │   ├── store/               # Estado global (Zustand)
+│   │   ├── services/            # Chamadas à API
+│   │   ├── types/               # Tipos TypeScript
+│   │   ├── App.tsx              # Componente principal
+│   │   ├── main.tsx             # Entry point
+│   │   └── index.css            # Estilos globais
+│   ├── index.html
+│   ├── vite.config.ts
+│   ├── tailwind.config.js
+│   ├── package.json
+│   └── tsconfig.json
 │
 ├── docs/                        # Documentação
 ├── .env.example                 # Variáveis de ambiente

@@ -413,7 +413,7 @@ cd backend
 npm run dev
 
 # Frontend
-cd frontend
+cd packages/frontend
 npm run dev
 ```
 

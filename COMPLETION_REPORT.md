@@ -58,12 +58,12 @@ Sistema de Workflow de Pagamentos totalmente estruturado, configurado e pronto p
 ### ✅ Documentação
 
 - [x] README.md - Overview geral
-- [x] INSTALLATION.md - Guia completo de instalação
-- [x] QUICK_START.md - Guia rápido
+- [x] docs/INSTALACAO.md - Guia completo de instalação
+- [x] README_INICIO_RAPIDO.md - Guia rápido
 - [x] PROJECT_SUMMARY.md - Sumário técnico
 - [x] ARCHITECTURE.md - Diagrama completo
 - [x] backend/README.md - Documentação backend
-- [x] frontend/README.md - Documentação frontend
+- [x] README.md - Documentação frontend
 
 ### ✅ Segurança e Conformidade
 
@@ -128,7 +128,7 @@ npm run dev
 ### 3️⃣ Iniciar Frontend
 
 ```bash
-cd frontend
+cd packages/frontend
 npm run dev
 ```
 
@@ -150,15 +150,15 @@ Use uma das credenciais pré-cadastradas:
    - [PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md) - Detalhes técnicos
 
 2. **Para Instalar**:
-   - [INSTALLATION.md](./INSTALLATION.md) - Passo a passo completo
-   - [QUICK_START.md](./QUICK_START.md) - Inicialização rápida
+   - [docs/INSTALACAO.md](./docs/INSTALACAO.md) - Passo a passo completo
+   - [README_INICIO_RAPIDO.md](./README_INICIO_RAPIDO.md) - Inicialização rápida
 
 3. **Para Arquitetura**:
    - [ARCHITECTURE.md](./ARCHITECTURE.md) - Diagramas e fluxos
 
 4. **Para Desenvolver**:
    - [backend/README.md](./backend/README.md) - Backend development
-   - [frontend/README.md](./frontend/README.md) - Frontend development
+   - [README.md](./README.md) - Frontend development
 
 ---
 
@@ -251,8 +251,8 @@ E:\APP\WORKFLOW\
 ├── docker-compose.yml          # PostgreSQL + pgAdmin
 │
 ├── README.md                   # Overview
-├── INSTALLATION.md             # Guia instalação
-├── QUICK_START.md              # Quick start
+├── docs/INSTALACAO.md          # Guia instalação
+├── README_INICIO_RAPIDO.md     # Quick start
 ├── PROJECT_SUMMARY.md          # Sumário técnico
 └── ARCHITECTURE.md             # Diagrama arquitetura
 ```

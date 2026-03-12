@@ -4,7 +4,7 @@
   "description": "Sistema de Workflow de Validação e Pagamento de Notas Fiscais e Boletos",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/frontend"
   ],
   "scripts": {
     "dev": "npm --prefix backend run dev & npm --prefix packages/frontend run dev",

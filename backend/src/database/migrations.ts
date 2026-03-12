@@ -56,6 +56,11 @@ export async function initializeDatabase(): Promise<void> {
       -- FASE 3B: Coluna opcional para contato SMS
       ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(30);
 
+      -- FASE 5: Campos de autenticação em dois fatores (2FA)
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret_encrypted TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_backup_codes TEXT[];
+
       -- Cadastro mestre de fornecedores
       CREATE TABLE IF NOT EXISTS suppliers (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

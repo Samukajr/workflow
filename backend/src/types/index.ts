@@ -6,6 +6,9 @@ export interface User {
   phone?: string;
   department: 'financeiro' | 'validacao' | 'submissao' | 'admin' | 'superadmin';
   password_hash: string;
+  two_factor_enabled?: boolean;
+  two_factor_secret_encrypted?: string | null;
+  two_factor_backup_codes?: string[] | null;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;

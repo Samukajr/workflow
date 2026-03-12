@@ -5,7 +5,10 @@ dotenv.config();
 const dataGovernanceEnabledRaw = process.env.DATA_GOVERNANCE_ENABLED;
 const dataGovernanceDefault = (process.env.NODE_ENV || 'development') === 'production';
 const resolvedCorsOrigins = process.env.CORS_ALLOWED_ORIGINS || process.env.ALLOWED_ORIGINS || 'http://localhost:5173';
-const resolvedJwtSecret = process.env.JWT_SECRET || process.env.ENCRYPTION_KEY || 'seu_jwt_secret_muito_seguro_aqui';
+const DEFAULT_JWT_SECRET = 'seu_jwt_secret_muito_seguro_aqui';
+const DEFAULT_ENCRYPTION_KEY = 'default-key-change-in-production-96-chars-minimum';
+const resolvedJwtSecret = process.env.JWT_SECRET || DEFAULT_JWT_SECRET;
+const resolvedEncryptionKey = process.env.ENCRYPTION_KEY || DEFAULT_ENCRYPTION_KEY;
 
 export const env = {
   // Server
@@ -28,6 +31,7 @@ export const env = {
 
   // JWT
   JWT_SECRET: resolvedJwtSecret,
+  ENCRYPTION_KEY: resolvedEncryptionKey,
   JWT_EXPIRATION: process.env.JWT_EXPIRATION || '24h',
 
   // File Upload
@@ -64,21 +68,21 @@ export const env = {
   INTEGRITY_SCAN_DAYS: parseInt(process.env.INTEGRITY_SCAN_DAYS || '30', 10),
 };
 
-// Validação de variáveis críticas
-const requiredEnvVars = ['JWT_SECRET'];
-for (const envVar of requiredEnvVars) {
-  const hasJwtSecret = Boolean(process.env.JWT_SECRET || process.env.ENCRYPTION_KEY);
-
-  if (envVar === 'JWT_SECRET' && !hasJwtSecret && process.env.NODE_ENV === 'production') {
-    throw new Error(`Variável de ambiente obrigatória não configurada: ${envVar}`);
-  }
-}
-
 if (process.env.NODE_ENV === 'production') {
   const jwtSecret = resolvedJwtSecret;
-  const isDefaultSecret = jwtSecret.includes('seu_jwt_secret_muito_seguro_aqui');
+  const encryptionKey = resolvedEncryptionKey;
+  const isDefaultJwtSecret = jwtSecret.includes(DEFAULT_JWT_SECRET);
+  const isDefaultEncryptionKey = encryptionKey.includes(DEFAULT_ENCRYPTION_KEY);
 
-  if (jwtSecret.length < 32 || isDefaultSecret) {
+  if (jwtSecret.length < 32 || isDefaultJwtSecret) {
     throw new Error('JWT_SECRET inseguro para produção. Use um segredo forte com pelo menos 32 caracteres.');
+  }
+
+  if (encryptionKey.length < 32 || isDefaultEncryptionKey) {
+    throw new Error('ENCRYPTION_KEY insegura para produção. Use um segredo forte com pelo menos 32 caracteres.');
+  }
+
+  if (jwtSecret === encryptionKey) {
+    throw new Error('JWT_SECRET e ENCRYPTION_KEY não devem ser iguais em produção. Use segredos distintos.');
   }
 }

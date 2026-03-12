@@ -297,6 +297,11 @@ router.get('/approvals/:id', authMiddleware, paymentController.getApprovals);
  *     tags: [Payments - Fase 2]
  *     security:
  *       - bearerAuth: []
+ *   get:
+ *     summary: Listar fornecedores da blocklist
+ *     tags: [Payments - Fase 2]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -311,6 +316,7 @@ router.get('/approvals/:id', authMiddleware, paymentController.getApprovals);
  *               reason:
  *                 type: string
  */
+router.get('/blocklist', authMiddleware, requireDepartment('validacao', 'admin', 'superadmin'), paymentController.listBlocklist);
 router.post('/blocklist', authMiddleware, requireDepartment('validacao', 'admin', 'superadmin'), paymentController.addToBlocklist);
 
 /**

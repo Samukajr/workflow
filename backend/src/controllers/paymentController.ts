@@ -400,6 +400,27 @@ export const addToBlocklist = asyncHandler(async (req: Request, res: Response) =
 });
 
 /**
+ * GET /api/payments/blocklist
+ * Listar fornecedores da blocklist
+ */
+export const listBlocklist = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ErrorHandler(401, 'Não autenticado');
+  }
+
+  try {
+    const blocklist = await paymentService.getSupplierBlocklist();
+
+    res.status(200).json({
+      success: true,
+      data: blocklist,
+    });
+  } catch (err: unknown) {
+    throw new ErrorHandler(500, err instanceof Error ? err.message : String(err));
+  }
+});
+
+/**
  * GET /api/payments/reports/export
  * Exportar relatórios em PDF ou Excel (somente superadmin)
  */

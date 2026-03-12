@@ -25,9 +25,8 @@ export default function BlocklistPage() {
   const loadBlocklist = async () => {
     setLoading(true);
     try {
-      // TODO: Criar endpoint GET /payments/blocklist no backend
-      // Por enquanto, array vazio
-      setBlocklist([]);
+      const response = await paymentService.listBlocklist();
+      setBlocklist(response.data || []);
     } catch (error) {
       console.error('Erro ao carregar blocklist:', error);
     } finally {
@@ -41,19 +40,24 @@ export default function BlocklistPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.supplier_document || !formData.supplier_name || !formData.reason) {
+
+    const normalizedDocument = formData.supplier_document.replace(/\D/g, '');
+
+    if (!normalizedDocument || !formData.supplier_name || !formData.reason) {
       alert('Preencha todos os campos');
       return;
     }
 
     setLoading(true);
     try {
-      await paymentService.addToBlocklist(formData);
+      await paymentService.addToBlocklist({
+        ...formData,
+        supplier_document: normalizedDocument,
+      });
       alert('Fornecedor adicionado à blocklist com sucesso!');
       setFormData({ supplier_document: '', supplier_name: '', reason: '' });
       setShowForm(false);
-      loadBlocklist();
+      await loadBlocklist();
     } catch (error: any) {
       console.error('Erro ao adicionar à blocklist:', error);
       alert(error.response?.data?.message || 'Erro ao adicionar à blocklist');

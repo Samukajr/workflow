@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, CheckCircle, AlertCircle, Download, Trash2, Eye } from 'lucide-react';
+import { Shield, CheckCircle, AlertCircle, Download, Trash2, Eye, Smartphone, KeyRound, Copy } from 'lucide-react';
 import { apiClient } from '@/services/api';
 
 interface Consent {
@@ -56,6 +56,19 @@ interface AuditApiResponse {
   created_at: string;
 }
 
+interface TwoFactorStatusResponse {
+  enabled: boolean;
+}
+
+interface TwoFactorSetupResponse {
+  manual_entry_key: string;
+  qr_code_data_url: string;
+}
+
+interface TwoFactorVerifyResponse {
+  backup_codes: string[];
+}
+
 const CONSENT_TYPES = [
   { id: 'marketing', label: 'Marketing e Comunicações', description: 'Receber emails promocionais' },
   { id: 'analytics', label: 'Analytics', description: 'Análise de uso e comportamento' },
@@ -63,7 +76,7 @@ const CONSENT_TYPES = [
 ];
 
 function LgpdPage() {
-  const [activeTab, setActiveTab] = useState<'consents' | 'deletion' | 'export' | 'audit'>('consents');
+  const [activeTab, setActiveTab] = useState<'consents' | 'deletion' | 'export' | 'audit' | 'security'>('consents');
   const [consents, setConsents] = useState<Consent[]>([]);
   const [deletionRequests, setDeletionRequests] = useState<DeletionRequest[]>([]);
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
@@ -71,6 +84,11 @@ function LgpdPage() {
   const [deletionReason, setDeletionReason] = useState('');
   const [showDeletionModal, setShowDeletionModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [twoFactorSetup, setTwoFactorSetup] = useState<TwoFactorSetupResponse | null>(null);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [disableTwoFactorCode, setDisableTwoFactorCode] = useState('');
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
 
   useEffect(() => {
     loadData();
@@ -128,6 +146,9 @@ function LgpdPage() {
             userAgent: entry.user_agent || 'N/A',
           })),
         );
+      } else if (activeTab === 'security') {
+        const response = await apiClient.get<{ success: boolean; data: TwoFactorStatusResponse }>('/auth/2fa/status');
+        setTwoFactorEnabled(Boolean(response.data?.enabled));
       }
     } catch (error) {
       console.error('Erro ao carregar dados LGPD:', error);
@@ -189,6 +210,82 @@ function LgpdPage() {
     }
   };
 
+  const handleStartTwoFactorSetup = async () => {
+    setIsLoading(true);
+    try {
+      const response = await apiClient.post<{ success: boolean; data: TwoFactorSetupResponse }>('/auth/2fa/setup');
+      setTwoFactorSetup(response.data || null);
+      setBackupCodes([]);
+      setTwoFactorCode('');
+      setSuccessMessage('Configuração 2FA iniciada. Escaneie o QR code e informe o código para ativar.');
+    } catch (error) {
+      console.error('Erro ao iniciar configuração 2FA:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyTwoFactorSetup = async () => {
+    if (!twoFactorCode.trim()) {
+      alert('Informe o código do app autenticador');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await apiClient.post<{ success: boolean; data: TwoFactorVerifyResponse }>('/auth/2fa/verify-setup', {
+        code: twoFactorCode.trim(),
+      });
+
+      setBackupCodes(response.data?.backup_codes || []);
+      setTwoFactorEnabled(true);
+      setTwoFactorSetup(null);
+      setTwoFactorCode('');
+      setSuccessMessage('2FA habilitado com sucesso. Guarde os backup codes em local seguro.');
+    } catch (error) {
+      console.error('Erro ao verificar configuração 2FA:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDisableTwoFactor = async () => {
+    if (!disableTwoFactorCode.trim()) {
+      alert('Informe um código 2FA ou backup code para desabilitar');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await apiClient.post('/auth/2fa/disable', {
+        code: disableTwoFactorCode.trim(),
+      });
+
+      setTwoFactorEnabled(false);
+      setTwoFactorSetup(null);
+      setBackupCodes([]);
+      setDisableTwoFactorCode('');
+      setSuccessMessage('2FA desabilitado com sucesso.');
+    } catch (error) {
+      console.error('Erro ao desabilitar 2FA:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCopyBackupCodes = async () => {
+    if (backupCodes.length === 0) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(backupCodes.join('\n'));
+      setSuccessMessage('Backup codes copiados para a área de transferência.');
+    } catch (error) {
+      console.error('Erro ao copiar backup codes:', error);
+    }
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
@@ -211,7 +308,7 @@ function LgpdPage() {
       {/* Tabs */}
       <div className="mb-6 border-b border-gray-200">
         <div className="flex gap-8">
-          {(['consents', 'deletion', 'export', 'audit'] as const).map((tab) => (
+          {(['consents', 'deletion', 'export', 'audit', 'security'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => {
@@ -228,6 +325,7 @@ function LgpdPage() {
               {tab === 'deletion' && 'Exclusão de Dados'}
               {tab === 'export' && 'Exportar Dados'}
               {tab === 'audit' && 'Auditoria'}
+              {tab === 'security' && 'Segurança (2FA)'}
             </button>
           ))}
         </div>
@@ -437,6 +535,133 @@ function LgpdPage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'security' && (
+          <div className="p-6">
+            <h2 className="text-xl font-bold mb-4">Autenticação em Dois Fatores (2FA)</h2>
+            <p className="text-gray-600 mb-4">
+              Aumente a segurança da sua conta exigindo um código adicional no login.
+            </p>
+
+            <div className="mb-6 p-4 rounded-lg border bg-slate-50">
+              <div className="flex items-center gap-2 mb-2">
+                <Smartphone className="w-5 h-5 text-blue-600" />
+                <span className="font-semibold text-gray-900">Status atual</span>
+              </div>
+              <p className="text-sm text-gray-700">
+                {twoFactorEnabled ? '2FA habilitado para sua conta.' : '2FA desabilitado para sua conta.'}
+              </p>
+            </div>
+
+            {!twoFactorEnabled && !twoFactorSetup && (
+              <button
+                onClick={handleStartTwoFactorSetup}
+                disabled={isLoading}
+                className="btn btn-primary flex items-center gap-2"
+              >
+                <KeyRound className="w-4 h-4" />
+                Iniciar Configuração 2FA
+              </button>
+            )}
+
+            {!twoFactorEnabled && twoFactorSetup && (
+              <div className="space-y-4 border rounded-lg p-4 bg-white">
+                <h3 className="font-semibold text-gray-900">1) Escaneie o QR Code no app autenticador</h3>
+                <img
+                  src={twoFactorSetup.qr_code_data_url}
+                  alt="QR code para configuração de 2FA"
+                  className="w-56 h-56 border rounded-lg"
+                />
+
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">2) Chave manual (caso não use QR)</h4>
+                  <code className="text-xs bg-gray-100 px-2 py-1 rounded block break-all">
+                    {twoFactorSetup.manual_entry_key}
+                  </code>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1">3) Informe o código gerado</h4>
+                  <input
+                    type="text"
+                    value={twoFactorCode}
+                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\s+/g, ''))}
+                    placeholder="000000"
+                    className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg"
+                    inputMode="numeric"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleVerifyTwoFactorSetup}
+                    disabled={isLoading || !twoFactorCode.trim()}
+                    className="btn btn-primary"
+                  >
+                    Confirmar e Habilitar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTwoFactorSetup(null);
+                      setTwoFactorCode('');
+                    }}
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {backupCodes.length > 0 && (
+              <div className="mt-6 p-4 rounded-lg border bg-amber-50">
+                <h3 className="font-semibold text-amber-900 mb-2">Backup Codes (uso único)</h3>
+                <p className="text-sm text-amber-800 mb-3">
+                  Guarde estes códigos em local seguro. Eles são exibidos apenas agora.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                  {backupCodes.map((code) => (
+                    <code key={code} className="text-xs bg-white border px-2 py-1 rounded">
+                      {code}
+                    </code>
+                  ))}
+                </div>
+                <button
+                  onClick={handleCopyBackupCodes}
+                  className="inline-flex items-center gap-2 px-3 py-2 border rounded-lg hover:bg-white"
+                >
+                  <Copy className="w-4 h-4" />
+                  Copiar Códigos
+                </button>
+              </div>
+            )}
+
+            {twoFactorEnabled && (
+              <div className="mt-6 p-4 rounded-lg border bg-red-50">
+                <h3 className="font-semibold text-red-900 mb-2">Desabilitar 2FA</h3>
+                <p className="text-sm text-red-800 mb-3">
+                  Informe um código válido do autenticador ou um backup code para confirmar.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                  <input
+                    type="text"
+                    value={disableTwoFactorCode}
+                    onChange={(e) => setDisableTwoFactorCode(e.target.value.replace(/\s+/g, ''))}
+                    placeholder="Código 2FA ou backup code"
+                    className="w-full sm:max-w-sm px-4 py-2 border border-gray-300 rounded-lg"
+                  />
+                  <button
+                    onClick={handleDisableTwoFactor}
+                    disabled={isLoading || !disableTwoFactorCode.trim()}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                  >
+                    Desabilitar 2FA
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -78,6 +78,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { label: 'Todas Requisicoes', path: '/payments' },
   ]
 
+  const hasPrivacyLink = links.some((item) => item.path === '/lgpd')
+
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -147,6 +149,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </NavLink>
               </li>
             ))}
+
+            {!hasPrivacyLink && (
+              <li>
+                <NavLink
+                  to="/lgpd"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      isActive
+                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40'
+                        : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                    }`
+                  }
+                >
+                  Privacidade e Segurança
+                </NavLink>
+              </li>
+            )}
           </ul>
         </nav>
 

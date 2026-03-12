@@ -16,6 +16,7 @@ O sistema possui recursos técnicos para apoiar obrigações da LGPD (Lei 13.709
 - Exportação de dados pessoais por titular.
 - Auditoria de processamento de dados pessoais.
 - Logs operacionais de acesso com rastreabilidade.
+- Autenticação em dois fatores (2FA/TOTP) para reforço de segurança de acesso.
 
 ## Endpoints LGPD Disponíveis
 

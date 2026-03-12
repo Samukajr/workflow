@@ -57,6 +57,21 @@ Todos com senha: **`DemoPass@123`**
 
 ---
 
+## 🛡️ Segurança da Conta (2FA)
+
+Após login, você pode habilitar autenticação em dois fatores:
+
+1. Acesse **Privacidade e Segurança** no menu lateral.
+2. Entre na aba **Segurança (2FA)**.
+3. Clique em **Iniciar Configuração 2FA**.
+4. Escaneie o QR code no app autenticador (Google Authenticator, Microsoft Authenticator, Authy etc.).
+5. Informe o código gerado para confirmar.
+6. Guarde os **backup codes** em local seguro (uso único).
+
+Com 2FA ativo, o login passa a exigir senha + código do autenticador (ou backup code).
+
+---
+
 ## 🔍 Verificar Instalação
 
 ```bash

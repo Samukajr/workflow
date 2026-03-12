@@ -2,8 +2,10 @@ import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth';
 import {
   recordConsent,
+  getUserConsents,
   revokeConsent,
   requestDataDeletion,
+  getUserDeletionRequests,
   getPendingDeletionRequests,
   approveDeletionRequest,
   exportPersonalData,
@@ -12,6 +14,18 @@ import {
 import logger from '../utils/logger';
 
 const router = Router();
+
+// GET - Listar consentimentos do usuário autenticado
+router.get('/consents', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id || '';
+    const consents = await getUserConsents(userId);
+    res.json({ success: true, consents });
+  } catch (error: unknown) {
+    logger.error('Erro ao listar consentimentos:', error);
+    res.status(500).json({ success: false, message: 'Erro ao listar consentimentos' });
+  }
+});
 
 // POST - Registrar consentimento
 router.post('/consent', authMiddleware, async (req: Request, res: Response) => {
@@ -66,6 +80,19 @@ router.post('/data-deletion', authMiddleware, async (req: Request, res: Response
   } catch (error: unknown) {
     logger.error('Erro ao solicitar deleção:', error);
     res.status(500).json({ success: false, message: 'Erro ao solicitar deleção' });
+  }
+});
+
+// GET - Listar solicitações de deleção do usuário autenticado
+router.get('/data-deletion', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id || '';
+    const requests = await getUserDeletionRequests(userId);
+
+    res.json({ success: true, requests });
+  } catch (error: unknown) {
+    logger.error('Erro ao listar solicitações de deleção:', error);
+    res.status(500).json({ success: false, message: 'Erro ao listar solicitações de deleção' });
   }
 });
 

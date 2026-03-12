@@ -10,6 +10,13 @@ interface Consent {
   revokedAt?: string;
 }
 
+interface ConsentApiResponse {
+  id: string;
+  consent_type: string;
+  given_at: string;
+  revoked_at: string | null;
+}
+
 interface DeletionRequest {
   id: string;
   userId: string;
@@ -18,6 +25,16 @@ interface DeletionRequest {
   status: 'pending' | 'approved' | 'processing' | 'completed';
   approvedAt?: string;
   completedAt?: string;
+}
+
+interface DeletionRequestApiResponse {
+  id: string;
+  user_id: string;
+  reason: string;
+  status: 'pending' | 'approved' | 'completed' | 'rejected';
+  request_date: string;
+  updated_at?: string;
+  completed_at: string | null;
 }
 
 interface AuditEntry {
@@ -29,10 +46,20 @@ interface AuditEntry {
   userAgent: string;
 }
 
+interface AuditApiResponse {
+  id: string;
+  action: string;
+  data_type: string;
+  reason: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+}
+
 const CONSENT_TYPES = [
   { id: 'marketing', label: 'Marketing e Comunicações', description: 'Receber emails promocionais' },
   { id: 'analytics', label: 'Analytics', description: 'Análise de uso e comportamento' },
-  { id: 'third_party', label: 'Terceiros', description: 'Compartilhar dados com parceiros' },
+  { id: 'data_processing', label: 'Processamento de Dados', description: 'Permitir processamento para operação do sistema' },
 ];
 
 function LgpdPage() {
@@ -53,47 +80,54 @@ function LgpdPage() {
     setIsLoading(true);
     try {
       if (activeTab === 'consents') {
-        // Mock data - em produção, buscar da API
+        const response = await apiClient.get<{ success: boolean; consents: ConsentApiResponse[] }>('/lgpd/consents');
+
+        const latestByType = new Map<string, ConsentApiResponse>();
+        for (const item of response.consents || []) {
+          if (!latestByType.has(item.consent_type)) {
+            latestByType.set(item.consent_type, item);
+          }
+        }
+
         setConsents(
-          CONSENT_TYPES.map((type) => ({
-            id: type.id,
-            type: type.label,
-            granted: Math.random() > 0.5,
-            grantedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-          }))
+          CONSENT_TYPES.map((type) => {
+            const consent = latestByType.get(type.id);
+            return {
+              id: type.id,
+              type: type.label,
+              granted: consent ? consent.revoked_at === null : false,
+              grantedAt: consent?.given_at,
+              revokedAt: consent?.revoked_at || undefined,
+            };
+          }),
         );
       } else if (activeTab === 'deletion') {
-        // Mock data
-        setDeletionRequests([
-          {
-            id: '1',
-            userId: '',
-            reason: 'Não desejo mais usar a plataforma',
-            requestedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-            status: 'approved',
-            approvedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-          },
-        ]);
+        const response = await apiClient.get<{ success: boolean; requests: DeletionRequestApiResponse[] }>('/lgpd/data-deletion');
+
+        setDeletionRequests(
+          (response.requests || []).map((item) => ({
+            id: item.id,
+            userId: item.user_id,
+            reason: item.reason,
+            requestedAt: item.request_date,
+            status: item.status === 'rejected' ? 'pending' : item.status,
+            approvedAt: item.status === 'approved' ? item.updated_at : undefined,
+            completedAt: item.completed_at || undefined,
+          })),
+        );
       } else if (activeTab === 'audit') {
-        // Mock data
-        setAuditLog([
-          {
-            id: '1',
-            action: 'data_access',
-            description: 'Acesso ao perfil do usuário',
-            timestamp: new Date().toISOString(),
-            ipAddress: '192.168.1.100',
-            userAgent: 'Mozilla/5.0',
-          },
-          {
-            id: '2',
-            action: 'consent_granted',
-            description: 'Consentimento para marketing concedido',
-            timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            ipAddress: '192.168.1.100',
-            userAgent: 'Mozilla/5.0',
-          },
-        ]);
+        const response = await apiClient.get<{ success: boolean; audit: AuditApiResponse[] }>('/lgpd/data-audit');
+
+        setAuditLog(
+          (response.audit || []).map((entry) => ({
+            id: entry.id,
+            action: entry.action,
+            description: `${entry.action} - ${entry.data_type}${entry.reason ? ` (${entry.reason})` : ''}`,
+            timestamp: entry.created_at,
+            ipAddress: entry.ip_address || 'N/A',
+            userAgent: entry.user_agent || 'N/A',
+          })),
+        );
       }
     } catch (error) {
       console.error('Erro ao carregar dados LGPD:', error);
@@ -203,7 +237,7 @@ function LgpdPage() {
       <div className="bg-white rounded-lg shadow">
         {activeTab === 'consents' && (
           <div className="p-6">
-            <h2 className="text-xl font-bold mb-4">Manage your consents</h2>
+            <h2 className="text-xl font-bold mb-4">Gerenciar Consentimentos</h2>
             <div className="space-y-4">
               {CONSENT_TYPES.map((consentType) => {
                 const consent = consents.find((c) => c.id === consentType.id);
@@ -216,6 +250,11 @@ function LgpdPage() {
                         {consent?.grantedAt && (
                           <p className="text-xs text-gray-500 mt-2">
                             Concedido em {new Date(consent.grantedAt).toLocaleDateString('pt-BR')}
+                          </p>
+                        )}
+                        {consent?.revokedAt && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Revogado em {new Date(consent.revokedAt).toLocaleDateString('pt-BR')}
                           </p>
                         )}
                       </div>
@@ -246,6 +285,10 @@ function LgpdPage() {
               </p>
             </div>
 
+            {deletionRequests.length === 0 && (
+              <p className="text-sm text-gray-600 mb-6">Nenhuma solicitação registrada para sua conta.</p>
+            )}
+
             {deletionRequests.length > 0 && (
               <div className="mb-6">
                 <h3 className="font-semibold mb-3">Histórico de Solicitações</h3>
@@ -267,9 +310,11 @@ function LgpdPage() {
                             <span className={`text-xs px-2 py-1 rounded ${
                               req.status === 'completed'
                                 ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
+                                : req.status === 'approved'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-slate-100 text-slate-800'
                             }`}>
-                              {req.status === 'completed' ? 'CONCLUÍDA' : 'APROVADA'}
+                              {req.status === 'completed' ? 'CONCLUÍDA' : req.status === 'approved' ? 'APROVADA' : 'PENDENTE'}
                             </span>
                           </div>
                           <p className="text-sm text-gray-600 mt-2">
@@ -278,6 +323,11 @@ function LgpdPage() {
                           {req.status === 'approved' && req.approvedAt && (
                             <p className="text-sm text-gray-600">
                               Aprovado em {new Date(req.approvedAt).toLocaleDateString('pt-BR')} - processando...
+                            </p>
+                          )}
+                          {req.status === 'completed' && req.completedAt && (
+                            <p className="text-sm text-gray-600">
+                              Concluído em {new Date(req.completedAt).toLocaleDateString('pt-BR')}
                             </p>
                           )}
                         </div>
@@ -356,6 +406,9 @@ function LgpdPage() {
               Histórico de acessos e modificações aos seus dados pessoais
             </p>
             <div className="space-y-3">
+              {auditLog.length === 0 && (
+                <p className="text-sm text-gray-600">Nenhum evento de auditoria encontrado para sua conta.</p>
+              )}
               {auditLog.map((entry) => (
                 <div key={entry.id} className="border rounded-lg p-4">
                   <div className="flex items-start justify-between">
@@ -394,7 +447,7 @@ function LgpdPage() {
           <strong>⚖️ Legislação aplicável:</strong> Lei Geral de Proteção de Dados Pessoais (LGPD - Lei 13.709/2018)
         </p>
         <p className="mt-2">
-          Para mais informações sobre como seus dados são processados, consulte nossa Política de Privacidade.
+          Para mais informações sobre como seus dados são processados, consulte nossa Política de Privacidade e Termos de Uso na pasta de documentação do projeto.
         </p>
       </div>
     </div>

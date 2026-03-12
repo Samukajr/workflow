@@ -262,3 +262,33 @@ export async function disableTwoFactor(userId: string, code: string): Promise<vo
     method: 'totp_or_backup',
   });
 }
+
+export async function changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+  const user = await queries.getUserById(userId);
+
+  if (!user) {
+    throw new Error('Usuário não encontrado');
+  }
+
+  if (!user.is_active) {
+    throw new Error('Usuário inativo');
+  }
+
+  const isPasswordValid = await comparePassword(currentPassword, user.password_hash);
+
+  if (!isPasswordValid) {
+    throw new Error('Senha atual inválida');
+  }
+
+  if (newPassword.length < 8) {
+    throw new Error('A nova senha deve ter no mínimo 8 caracteres');
+  }
+
+  const newPasswordHash = await hashPassword(newPassword);
+
+  await queries.updateUserPassword(userId, newPasswordHash);
+
+  await queries.createAuditLog(userId, 'PASSWORD_CHANGED', 'user', userId, {
+    timestamp: new Date().toISOString(),
+  });
+}

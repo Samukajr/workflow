@@ -232,3 +232,34 @@ export const me = asyncHandler(async (req: Request, res: Response) => {
     },
   });
 });
+
+const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string().required(),
+  newPassword: Joi.string().min(8).required(),
+});
+
+export const changePassword = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new ErrorHandler(401, 'Não autenticado');
+  }
+
+  const { error, value } = changePasswordSchema.validate(req.body);
+
+  if (error) {
+    throw new ErrorHandler(400, error.details[0].message);
+  }
+
+  try {
+    await authService.changePassword(req.user.id, value.currentPassword, value.newPassword);
+
+    logger.info(`Senha alterada para usuário: ${req.user.email}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Senha alterada com sucesso. Faça login novamente.',
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Falha ao alterar senha';
+    throw new ErrorHandler(400, message);
+  }
+});

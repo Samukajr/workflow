@@ -19,6 +19,7 @@ import LgpdPage from './pages/LgpdPage'
 import UserManagementPage from './pages/UserManagementPage'
 import SuppliersPage from './pages/SuppliersPage'
 import TwoFactorManagementPage from './pages/TwoFactorManagementPage'
+import AccountSettingsPage from './pages/AccountSettingsPage'
 
 export default function App() {
   const { isAuthenticated } = useAuthStore()
@@ -55,6 +56,7 @@ export default function App() {
           <Route path="/alcadas" element={<ApprovalRulesPage />} />
           <Route path="/lgpd" element={<LgpdPage />} />
           <Route path="/2fa" element={<TwoFactorManagementPage />} />
+          <Route path="/account" element={<AccountSettingsPage />} />
           <Route path="/users" element={<UserManagementPage />} />
 
           {/* Rotas legadas para compatibilidade */}

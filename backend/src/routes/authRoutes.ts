@@ -62,6 +62,7 @@ router.post('/login/2fa', authController.loginWithTwoFactor);
  *       - bearerAuth: []
  */
 router.get('/me', authMiddleware, authController.me);
+router.post('/change-password', authMiddleware, authController.changePassword);
 router.get('/2fa/status', authMiddleware, authController.getTwoFactorStatus);
 router.post('/2fa/setup', authMiddleware, authController.setupTwoFactor);
 router.post('/2fa/verify-setup', authMiddleware, authController.verifyTwoFactorSetup);

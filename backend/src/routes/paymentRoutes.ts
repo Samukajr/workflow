@@ -187,6 +187,7 @@ router.post('/close', authMiddleware, requireDepartment('financeiro'), paymentCo
  *       - bearerAuth: []
  */
 router.get('/dashboard/stats', authMiddleware, paymentController.getDashboard);
+router.get('/ready-for-payment', authMiddleware, requireDepartment('financeiro'), paymentController.listReadyForPayment);
 
 /**
  * @swagger

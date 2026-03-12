@@ -28,6 +28,13 @@ export interface PaymentRequest {
   updated_at: string;
 }
 
+export interface PaymentReadyForPayment extends PaymentRequest {
+  bank_name?: string | null;
+  bank_branch?: string | null;
+  bank_account?: string | null;
+  supplier_status?: string | null;
+}
+
 export interface PaymentWorkflow {
   id: string;
   payment_request_id: string;
@@ -141,6 +148,11 @@ export const paymentService = {
   async list(params?: { status?: string; limit?: number; offset?: number }) {
     const queryString = params ? '?' + new URLSearchParams(params as any).toString() : '';
     return apiClient.get<{ success: boolean; data: PaymentRequest[] }>(`/payments${queryString}`);
+  },
+
+  async listReadyForPayment(params?: { limit?: number; offset?: number }) {
+    const queryString = params ? '?' + new URLSearchParams(params as any).toString() : '';
+    return apiClient.get<{ success: boolean; data: PaymentReadyForPayment[] }>(`/payments/ready-for-payment${queryString}`);
   },
 
   // Obter detalhes

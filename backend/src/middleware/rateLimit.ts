@@ -1,25 +1,40 @@
 import rateLimit from 'express-rate-limit';
+import { Request } from 'express';
 import { env } from '../config/environment';
+
+function getClientIdentifier(req: Request): string {
+  return req.ip || req.socket.remoteAddress || 'unknown';
+}
+
+function getAuthKey(req: Request): string {
+  const client = getClientIdentifier(req);
+  const body = req.body as Record<string, unknown> | undefined;
+  const emailValue = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
+
+  // Para login, evita que tentativas de um usuário bloqueiem todos no mesmo IP.
+  if (req.path === '/login' && emailValue) {
+    return `${client}:${emailValue}`;
+  }
+
+  return client;
+}
 
 /**
  * Rate limiter para endpoints de autenticação
  * Máximo 5 tentativas a cada 10 minutos por IP
  */
 export const authLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutos
-  max: 5, // 5 requisições
+  windowMs: env.AUTH_RATE_LIMIT_WINDOW_MS,
+  max: env.AUTH_RATE_LIMIT_MAX,
   message: {
     success: false,
-    message: 'Muitas tentativas de acesso. Tente novamente em 10 minutos.',
-    retryAfter: 10 * 60,
+    message: 'Muitas tentativas de acesso. Aguarde antes de tentar novamente.',
+    retryAfter: Math.ceil(env.AUTH_RATE_LIMIT_WINDOW_MS / 1000),
   },
   standardHeaders: true, // Retorna info em `RateLimit-*` headers
   legacyHeaders: false,
-  skip: (_req) => env.NODE_ENV === 'development', // Desabilitar em development
-  keyGenerator: (req) => {
-    // Usar IP real (considerando proxies como Render)
-    return req.ip || req.socket.remoteAddress || 'unknown';
-  },
+  skip: (_req) => env.NODE_ENV === 'development' || !env.AUTH_RATE_LIMIT_ENABLED,
+  keyGenerator: (req) => getAuthKey(req),
 });
 
 /**
@@ -38,7 +53,7 @@ export const passwordResetLimiter = rateLimit({
   legacyHeaders: false,
   skip: (_req) => env.NODE_ENV === 'development',
   keyGenerator: (req) => {
-    return req.ip || req.socket.remoteAddress || 'unknown';
+    return getClientIdentifier(req);
   },
 });
 
@@ -59,7 +74,7 @@ export const uploadLimiter = rateLimit({
   skip: (_req) => env.NODE_ENV === 'development',
   keyGenerator: (req) => {
     // Se autenticado, usar ID do usuário. Se não, usar IP
-    return req.user?.id || req.ip || req.socket.remoteAddress || 'unknown';
+    return req.user?.id || getClientIdentifier(req);
   },
 });
 
@@ -79,6 +94,6 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false,
   skip: (_req) => env.NODE_ENV === 'development',
   keyGenerator: (req) => {
-    return req.ip || req.socket.remoteAddress || 'unknown';
+    return getClientIdentifier(req);
   },
 });

@@ -64,9 +64,15 @@ class ApiClient {
           localStorage.removeItem('user');
           window.location.href = '/login';
         } else if (error.response?.status === 429) {
-          const retryAfter = error.response.headers['retry-after'];
-          const retrySeconds = retryAfter ? parseInt(retryAfter, 10) : 60;
-          alert(`Rate limit atingido. Tente novamente em ${retrySeconds} segundos.`);
+          const retryAfterHeader = error.response.headers['retry-after'];
+          const responseBody = error.response.data as { retryAfter?: number; message?: string } | undefined;
+          const retryFromBody = typeof responseBody?.retryAfter === 'number' ? responseBody.retryAfter : undefined;
+          const retryFromHeader = retryAfterHeader ? parseInt(retryAfterHeader, 10) : undefined;
+          const retrySeconds = retryFromBody ?? retryFromHeader ?? 60;
+          const waitText = retrySeconds >= 60
+            ? `${Math.ceil(retrySeconds / 60)} minuto(s)`
+            : `${retrySeconds} segundo(s)`;
+          alert(`Rate limit atingido. Tente novamente em ${waitText}.`);
         }
         return Promise.reject(error);
       },

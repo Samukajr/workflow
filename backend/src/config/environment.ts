@@ -58,6 +58,9 @@ export const env = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   ENABLE_AUDIT_LOG: process.env.ENABLE_AUDIT_LOG === 'true',
   HEALTHCHECK_DB_TIMEOUT_MS: parseInt(process.env.HEALTHCHECK_DB_TIMEOUT_MS || '3000', 10),
+  AUTH_RATE_LIMIT_ENABLED: process.env.AUTH_RATE_LIMIT_ENABLED !== 'false',
+  AUTH_RATE_LIMIT_WINDOW_MS: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS || '600000', 10),
+  AUTH_RATE_LIMIT_MAX: parseInt(process.env.AUTH_RATE_LIMIT_MAX || '20', 10),
 
   // Data Governance & Retention
   DATA_GOVERNANCE_ENABLED:
